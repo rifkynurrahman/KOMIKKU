@@ -1,0 +1,14 @@
+<%
+  const currentPath = locals.currentPath || '';
+%>
+<nav>
+  <a class="logo" href="/">✦ <span>KOMIK</span>KU</a>
+  <div class="nav-links">
+    <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Beranda</a>
+    <a href="/browse" class="<%= currentPath === '/browse' ? 'active' : '' %>">Browse</a>
+  </div>
+  <div class="nav-btns">
+    <a href="/login" class="btn btn-outline">Masuk</a>
+    <a href="/register" class="btn btn-primary">Daftar</a>
+  </div>
+</nav>

@@ -1,0 +1,19 @@
+{
+  "name": "komikku",
+  "version": "1.0.0",
+  "description": "Platform Komik Web Indonesia",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "mongoose": "^9.6.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browse Komik — KomikKu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<%- include('partials/navbar', { currentPath: '/browse' }) %>
+
+<div class="section" style="padding-top:40px">
+  <div class="section-head">
+    <div class="section-badge">📚 Koleksi</div>
+    <h2 class="section-title">Browse Komik</h2>
+    <p class="section-sub">Ribuan komik dari kreator berbakat Indonesia</p>
+  </div>
+
+  <div class="search-bar" style="margin-bottom:24px">
+    <form method="GET" action="/browse" style="display:flex;gap:10px;max-width:480px">
+      <input
+        type="text" name="q" value="<%= locals.query || '' %>"
+        placeholder="Cari judul komik..."
+        style="flex:1;background:#262626;border:1px solid #3f3f46;color:#f5f5f5;padding:10px 18px;border-radius:12px;font-size:14px;font-family:'Nunito',sans-serif;outline:none"
+      >
+      <button type="submit" class="btn btn-primary" style="padding:10px 20px">Cari</button>
+    </form>
+  </div>
+
+  <div class="genre-row">
+    <a href="/browse" class="pill <%= !locals.activeGenre ? 'active' : '' %>">Semua</a>
+    <% genres.forEach(g => { %>
+    <a href="/browse?genre=<%= g %>" class="pill <%= locals.activeGenre === g ? 'active' : '' %>"><%= g %></a>
+    <% }) %>
+  </div>
+
+  <% if(comics.length === 0) { %>
+  <div style="text-align:center;padding:80px 0;color:#737373">
+    <div style="font-size:48px;margin-bottom:16px">🔍</div>
+    <p style="font-size:18px;font-weight:700">Komik tidak ditemukan</p>
+    <p style="font-size:14px;margin-top:8px">Coba kata kunci atau genre yang berbeda</p>
+  </div>
+  <% } else { %>
+  <div class="comics-grid">
+    <% comics.forEach(k => { %>
+    <a href="/komik/<%= k._id %>" class="comic-card">
+      <div class="comic-cover">
+        <img src="/<%= k.coverImage %>" alt="<%= k.title %>">
+        <% if(k.badge) { %><span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span><% } %>
+      </div>
+      <div class="info">
+        <div class="genre-tag" style="color: #2299DD;"><%= k.genres && k.genres.length > 0 ? k.genres[0] : 'Umum' %></div>
+        <div class="comic-title"><%= k.title %></div>
+        
+        <div class="comic-ch">
+          Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
+          · <%= k.status %>
+        </div>
+        
+        <div class="meta-row">
+          <span>👁 <%= formatViews(k.views) %></span>
+          <span>⭐ <%= k.rating %></span>
+        </div>
+      </div>
+    </a>
+    <% }) %>
+  </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>
+<script src="/js/main.js"></script>
+</body>
+</html>

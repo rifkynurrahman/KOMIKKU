@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KomikKu — Platform Komik Indonesia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<% 
+  // Jaring pengaman supaya EJS tidak crash kalau variabel dari server tidak ada
+  const safeTrending = (typeof trending !== 'undefined' && trending) ? trending : [];
+  const safeFormatViews = (typeof formatViews === 'function') ? formatViews : function(num) {
+    if (!num) return '0';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num;
+  };
+%>
+
+<%- include('partials/navbar', { currentPath: '/' }) %>
+
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-badge">✦ Platform Komik #1 Indonesia</div>
+    <h1 class="hero-title">BACA &amp;<br><span>UPLOAD</span><br>KOMIKMU</h1>
+    <p class="hero-desc">Platform terbaik untuk membaca ribuan komik karya kreator lokal. Gratis, tanpa batas, kapan saja.</p>
+    <div class="hero-actions">
+      <a href="/browse" class="btn btn-primary btn-hero">▶ Baca Sekarang</a>
+      <a href="/register" class="btn btn-outline btn-hero">+ Upload Komik</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">2.4JT</div>
+        <div class="stat-lbl">Pembaca</div>
+      </div>
+      <div>
+        <div class="stat-num">12K</div>
+        <div class="stat-lbl">Kreator</div>
+      </div>
+      <div>
+        <div class="stat-num">85K</div>
+        <div class="stat-lbl">Komik</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <% safeTrending.slice(0,5).forEach((k, i) => { %>
+    <a href="/komik/<%= k._id %>" class="hero-cover-slot" style="<%= i===0 ? 'grid-row:span 2;' : '' %>">
+      <img src="/<%= k.coverImage %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+    </a>
+    <% }) %>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <div class="section-badge">🔥 Trending</div>
+    <h2 class="section-title">Komik Terpopuler</h2>
+    <p class="section-sub">Paling banyak dibaca minggu ini</p>
+  </div>
+  <div class="comics-grid">
+    <% safeTrending.forEach(k => { %>
+    <a href="/komik/<%= k._id %>" class="comic-card">
+      <div class="comic-cover">
+        <img src="/<%= k.coverImage %>" alt="<%= k.title %>">
+        <% if(k.badge) { %><span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span><% } %>
+      </div>
+      <div class="info">
+        <div class="genre-tag" style="color: #2299DD;"><%= k.genres && k.genres.length > 0 ? k.genres[0] : 'Umum' %></div>
+        <div class="comic-title"><%= k.title %></div>
+        
+        <div class="comic-ch">
+          Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
+          · <%= k.status %>
+        </div>
+        
+        <div class="meta-row">
+          <span>👁 <%= safeFormatViews(k.views) %></span>
+          <span>⭐ <%= k.rating %></span>
+        </div>
+      </div>
+    </a>
+    <% }) %>
+  </div>
+  <div style="text-align:center;margin-top:36px">
+    <a href="/browse" class="btn btn-outline" style="padding:12px 36px;font-size:15px">Lihat Semua Komik →</a>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="creator-wrap">
+    <div class="creator-text">
+      <div class="section-badge">✍️ Untuk Kreator</div>
+      <h2>JADILAH BAGIAN<br>DARI KAMI</h2>
+      <p>Upload komikmu dan jangkau jutaan pembaca di seluruh Indonesia. Tools lengkap tersedia untuk mendukung kreativitasmu.</p>
+      <div class="creator-stats">
+        <div><div class="c-stat-num">2.4JT</div><div class="c-stat-lbl">Pembaca</div></div>
+        <div><div class="c-stat-num">12K</div><div class="c-stat-lbl">Kreator</div></div>
+        <div><div class="c-stat-num">85K</div><div class="c-stat-lbl">Komik</div></div>
+      </div>
+      <div class="creator-actions">
+        <a href="/register" class="btn btn-primary" style="padding:13px 32px;font-size:15px">+ Mulai Upload</a>
+        <a href="#" class="btn btn-outline" style="padding:13px 32px;font-size:15px">Pelajari Lebih</a>
+      </div>
+    </div>
+
+    <div class="deco-panels">
+      <div class="deco-p">
+        <div class="deco-avatar-wrapper" style="display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 18px; color: var(--gray1); line-height: 1;">👤</span>
+        </div>
+        <div class="deco-label">KREATOR!</div>
+        <div class="deco-sub">Bergabung sekarang</div>
+      </div>
+
+      <div class="deco-p">
+        <div style="font-family: 'Bangers', cursive; font-size: 26px; color: #fff; line-height: 1;">1JT+ VIEWS</div>
+        <div class="deco-label">Potensimu</div>
+      </div>
+
+      <div class="deco-p deco-p-wide" style="flex-direction: row; gap: 16px; padding: 0 20px; align-items: center;">
+        <div class="deco-bars" style="height: 60px; margin-top: 0; align-items: flex-end; flex: 1;">
+          <div class="deco-bar deco-bar-1"></div>
+          <div class="deco-bar deco-bar-2"></div>
+          <div class="deco-bar deco-bar-3"></div>
+          <div class="deco-bar deco-bar-4"></div>
+          <div class="deco-bar deco-bar-5"></div>
+        </div>
+        <div style="flex-shrink: 0; text-align: left;">
+          <div class="deco-label" style="color: var(--cyan); font-family: 'Bangers', cursive; font-size: 18px; letter-spacing: 0.5px; text-align: left; line-height: 1.1;">STATISTIK</div>
+          <div class="deco-label" style="color: var(--cyan); font-family: 'Bangers', cursive; font-size: 18px; letter-spacing: 0.5px; text-align: left; line-height: 1.1;">VIEWS ↗</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+<script src="/js/main.js"></script>
+</body>
+</html>
