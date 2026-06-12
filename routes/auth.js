@@ -7,22 +7,27 @@ const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
-const uploadDir = path.join(__dirname, '..', 'foto');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// Folder penyimpanan komik (tetap di luar)
+const uploadDirKomik = path.join(__dirname, '..', 'foto');
+
+// Folder penyimpanan khusus Avatar Profil User (di dalam public)
+const uploadDirAvatar = path.join(__dirname, '..', 'public', 'avatar');
+if (!fs.existsSync(uploadDirAvatar)) {
+  fs.mkdirSync(uploadDirAvatar, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination: uploadDir,
+// Konfigurasi Multer khusus untuk Avatar Profil
+const storageAvatar = multer.diskStorage({
+  destination: uploadDirAvatar,
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const filename = `${req.session.user.id}-${Date.now()}${ext}`;
+    const filename = `profile-${req.session.user.id}-${Date.now()}${ext}`;
     cb(null, filename);
   }
 });
 
-const upload = multer({
-  storage,
+const uploadAvatar = multer({
+  storage: storageAvatar,
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|webp/;
     const ext = path.extname(file.originalname).toLowerCase();
@@ -49,7 +54,6 @@ router.post('/login', async (req, res) => {
   try {
     const { emailOrUsername, password } = req.body;
     
-    // Validasi input
     if (!emailOrUsername || !password) {
       return res.status(400).json({ 
         success: false, 
@@ -57,7 +61,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Cari user berdasarkan email ATAU username
     const user = await User.findOne({ 
       $or: [{ email: emailOrUsername }, { username: emailOrUsername }]
     });
@@ -69,7 +72,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Verifikasi password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ 
@@ -78,7 +80,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Set session user
     req.session.user = {
       id: user._id,
       username: user.username,
@@ -88,7 +89,6 @@ router.post('/login', async (req, res) => {
       avatar: user.avatar || null
     };
     
-    // TODO: Implementasi session/JWT di sini nanti
     req.session.save((saveErr) => {
       if (saveErr) {
         console.error('Error Save Session Login:', saveErr);
@@ -127,7 +127,6 @@ router.post('/register', async (req, res) => {
   try {
     const { firstName, lastName, username, email, password, confirmPassword } = req.body;
     
-    // Validasi input
     if (!firstName || !lastName || !username || !email || !password || !confirmPassword) {
       return res.status(400).json({ 
         success: false, 
@@ -135,7 +134,6 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Cek password cocok
     if (password !== confirmPassword) {
       return res.status(400).json({ 
         success: false, 
@@ -143,7 +141,6 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Validasi panjang password (minimal 6 karakter)
     if (password.length < 6) {
       return res.status(400).json({ 
         success: false, 
@@ -151,7 +148,6 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Cek apakah username/email sudah terdaftar
     const existingUser = await User.findOne({ 
       $or: [{ username }, { email }] 
     });
@@ -170,10 +166,8 @@ router.post('/register', async (req, res) => {
       }
     }
     
-    // Hash password dengan salt 10
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Buat user baru
     const newUser = new User({
       firstName,
       lastName,
@@ -182,10 +176,8 @@ router.post('/register', async (req, res) => {
       password: hashedPassword
     });
     
-    // Simpan ke database
     await newUser.save();
     
-    // Set session langsung setelah register (auto-login)
     req.session.user = {
       id: newUser._id,
       username: newUser.username,
@@ -221,7 +213,7 @@ router.post('/register', async (req, res) => {
 });
 
 // ============================================================
-// GET /auth/profile — Render profile page (DENGAN HISTORY & BOOKMARK)
+// GET /auth/profile — Render profile page
 // ============================================================
 router.get('/profile', async (req, res) => {
   if (!req.session.user) {
@@ -229,7 +221,6 @@ router.get('/profile', async (req, res) => {
   }
   
   try {
-    // FIX: Kita populate sekaligus dua field: readHistory DAN bookmarks
     const user = await User.findById(req.session.user.id)
       .populate({
         path: 'readHistory.comicId',
@@ -244,18 +235,16 @@ router.get('/profile', async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Urutkan history berdasarkan waktu baca terbaru
     const sortedHistory = user.readHistory.sort((a, b) => 
       new Date(b.readAt) - new Date(a.readAt)
     );
 
-    // Ambil array bookmarks, jika kosong berikan array kosong []
     const userBookmarks = user.bookmarks || [];
 
     res.render('profile', { 
       currentPath: '/profile',
       readHistory: sortedHistory,
-      bookmarks: userBookmarks, // <-- Dikirim ke views/profile.ejs
+      bookmarks: userBookmarks, 
       user
     });
   } catch (err) {
@@ -265,73 +254,120 @@ router.get('/profile', async (req, res) => {
 });
 
 // ============================================================
-// POST /auth/profile/avatar — Upload user avatar
+// GET /auth/profile/edit — Render form edit profil
 // ============================================================
-router.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/auth/login');
-  }
-
-  if (!req.file) {
-    return res.status(400).send('Tidak ada file yang diunggah.');
-  }
-
+router.get('/profile/edit', async (req, res) => {
   try {
-    const user = await User.findById(req.session.user.id);
-    if (!user) {
+    if (!req.session.user) {
       return res.redirect('/auth/login');
     }
-
-    if (user.avatar) {
-      const oldAvatarPath = path.join(uploadDir, path.basename(user.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
-      }
+    
+    const userDb = await User.findById(req.session.user.id);
+    if (!userDb) {
+      return res.redirect('/auth/login');
     }
-
-    user.avatar = `/foto/${req.file.filename}`;
-    await user.save();
-
-    req.session.user.avatar = user.avatar;
-    res.redirect('/auth/profile');
+    
+    res.render('edit-profile', {
+      currentPath: '/profile',
+      user: req.session.user,
+      userDb: userDb,
+      error: null,
+      success: null
+    });
   } catch (err) {
-    console.error('Error upload avatar:', err);
-    res.status(500).send('Terjadi kesalahan saat mengunggah foto.');
+    console.error('Error saat memuat halaman edit profil:', err);
+    res.status(500).send('Terjadi kesalahan pada server.');
   }
 });
 
-// ============================================================
-// POST /auth/profile/avatar/delete — Remove user avatar
-// ============================================================
-router.post('/profile/avatar/delete', async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/auth/login');
-  }
-
+// =========================================================================
+// POST /auth/profile/edit — Proses Gabungan Teks & Upload Avatar (SUPER FIXED ✨)
+// =========================================================================
+router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => {
   try {
-    const user = await User.findById(req.session.user.id);
-    if (!user) {
+    if (!req.session.user) {
+      return res.redirect('/auth/login');
+    }
+    
+    const { firstName, lastName, username, password } = req.body;
+    const userDb = await User.findById(req.session.user.id);
+    
+    if (!userDb) {
       return res.redirect('/auth/login');
     }
 
-    if (user.avatar) {
-      const oldAvatarPath = path.join(uploadDir, path.basename(user.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
+    if (!firstName || !lastName || !username) {
+      return res.render('edit-profile', {
+        currentPath: '/profile',
+        user: req.session.user,
+        userDb,
+        error: 'Nama dan Username tidak boleh kosong!',
+        success: null
+      });
+    }
+    
+    if (username !== userDb.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.render('edit-profile', {
+          currentPath: '/profile',
+          user: req.session.user,
+          userDb,
+          error: 'Username sudah digunakan oleh orang lain!',
+          success: null
+        });
       }
+      userDb.username = username;
+    }
+    
+    userDb.firstName = firstName;
+    userDb.lastName = lastName;
+    
+    if (password && password.trim() !== '') {
+      if (password.length < 6) {
+        return res.render('edit-profile', {
+          currentPath: '/profile',
+          user: req.session.user,
+          userDb,
+          error: 'Password baru harus minimal 6 karakter!',
+          success: null
+        });
+      }
+      userDb.password = await bcrypt.hash(password, 10);
     }
 
-    user.avatar = null;
-    await user.save();
-
-    if (req.session.user) {
-      req.session.user.avatar = null;
+    // JIKA ADA FILE AVATAR BARU YANG DI-UPLOAD
+    if (req.file) {
+      // Hapus foto profil lama dari folder public/avatar jika ada
+      if (userDb.avatar && userDb.avatar.startsWith('/avatar/')) {
+        const oldAvatarPath = path.join(__dirname, '..', 'public', userDb.avatar);
+        if (fs.existsSync(oldAvatarPath)) {
+          fs.unlinkSync(oldAvatarPath);
+        }
+      }
+      // Simpan path baru mengarah ke folder statis /avatar/
+      userDb.avatar = `/avatar/${req.file.filename}`;
     }
-
-    res.redirect('/auth/profile');
+    
+    await userDb.save();
+    
+    // Sinkronisasi data Session saat ini
+    req.session.user.username = userDb.username;
+    req.session.user.firstName = userDb.firstName;
+    req.session.user.lastName = userDb.lastName;
+    req.session.user.avatar = userDb.avatar;
+    
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('Error saat menyimpan session ter-update:', saveErr);
+      }
+      // REDIRECT ke profil utama membawa parameter status success agar SweetAlert memicu keluar pop-up
+      res.redirect('/auth/profile?status=success');
+    });
+    
   } catch (err) {
-    console.error('Error delete avatar:', err);
-    res.status(500).send('Terjadi kesalahan saat menghapus foto.');
+    console.error('Error saat memproses edit profil:', err);
+    res.status(500).send('Terjadi kesalahan saat memperbarui profil.');
   }
 });
 

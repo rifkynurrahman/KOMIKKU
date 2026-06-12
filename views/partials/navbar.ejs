@@ -29,7 +29,11 @@
           justify-content: center;
           transition: all 0.2s;
         " title="<%= user.firstName %> <%= user.lastName %>">
-          👤
+          <% if (user.avatar) { %>
+            <img src="<%= user.avatar %>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+          <% } else { %>
+            <%= user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U' %>
+          <% } %>
         </button>
         
         <!-- Dropdown menu -->

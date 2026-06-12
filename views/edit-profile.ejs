@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Profile - KomikKu</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/profile.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+  .edit-form-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #18181c;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .edit-title {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    color: #a3a3a3;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 12px;
+    background: #27272a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus {
+    outline: none;
+    border-color: #2299DD;
+  }
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .btn-submit {
+    flex: 1;
+    background: #2299DD;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+  }
+  .btn-cancel {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .btn-submit:hover { background: #1b85c4; }
+  .btn-cancel:hover { background: rgba(255, 255, 255, 0.1); }
+</style>
+</head>
+<body>
+
+<%- include('partials/navbar', { currentPath: '/profile' }) %>
+
+<div class="profile-page">
+  <div class="edit-form-container">
+    <h2 class="edit-title">✏️ Edit Profil Kamu</h2>
+    
+    <form action="/auth/profile/edit" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="firstName">Nama Depan</label>
+        <input type="text" id="firstName" name="firstName" value="<%= user.firstName %>" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="lastName">Nama Belakang</label>
+        <input type="text" id="lastName" name="lastName" value="<%= user.lastName %>">
+      </div>
+      
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="<%= user.username %>" required>
+      </div>
+
+      <div class="form-group">
+        <label for="avatar">Upload Foto Profil / Avatar</label>
+        <input type="file" id="avatar" name="avatar" accept="image/*" style="padding: 8px;">
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Simpan Perubahan</button>
+        <a href="/auth/profile" class="btn-cancel">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+  const form = document.querySelector('form');
+  
+  form.addEventListener('submit', function(e) {
+    // Jalankan pop up animasi loading dark-mode style
+    Swal.fire({
+      title: 'Menyimpan Perubahan...',
+      text: 'Mohon tunggu sebentar ya, foto sedang di-upload!',
+      background: '#18181c',
+      color: '#fff',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

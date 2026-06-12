@@ -37,7 +37,12 @@
     <p class="hero-desc">Platform terbaik untuk membaca ribuan komik karya kreator lokal. Gratis, tanpa batas, kapan saja.</p>
     <div class="hero-actions">
       <a href="/browse" class="btn btn-primary btn-hero">▶ Baca Sekarang</a>
-      <a href="/register" class="btn btn-outline btn-hero">+ Upload Komik</a>
+      
+      <% if (typeof user !== 'undefined' && user) { %>
+        <a href="/author" class="btn btn-outline btn-hero">+ Upload Komik</a>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline btn-hero">+ Upload Komik</a>
+      <% } %>
     </div>
     
     <div class="hero-stats">
@@ -114,7 +119,11 @@
       </div>
       
       <div class="creator-actions">
-        <a href="/register" class="btn btn-primary" style="padding:13px 32px;font-size:15px">+ Mulai Upload</a>
+        <% if (typeof user !== 'undefined' && user) { %>
+          <a href="/author" class="btn btn-primary" style="padding:13px 32px;font-size:15px">+ Mulai Upload</a>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-primary" style="padding:13px 32px;font-size:15px">+ Mulai Upload</a>
+        <% } %>
         <a href="#" class="btn btn-outline" style="padding:13px 32px;font-size:15px">Pelajari Lebih</a>
       </div>
     </div>

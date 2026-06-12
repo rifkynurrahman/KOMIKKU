@@ -7,6 +7,7 @@ const path    = require('path');
 const session = require('express-session');
 
 
+
 const app = express();
 
 // Session middleware
@@ -25,7 +26,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/foto', express.static(path.join(__dirname, 'foto')));
 app.use('/logo', express.static(path.join(__dirname, 'logo')));
-
+app.use(express.static('public'));
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
