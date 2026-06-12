@@ -1,0 +1,418 @@
+.upload-page {
+      min-height: 100vh;
+      background: var(--bg);
+      padding: 40px 20px 72px;
+    }
+
+    .upload-shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .upload-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .upload-kicker {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .upload-heading h1 {
+      font-size: 38px;
+      color: var(--off);
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .upload-heading p {
+      color: var(--gray1);
+      max-width: 560px;
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+
+    .upload-status {
+      min-width: 260px;
+    }
+
+    .message {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+
+    .message.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #86efac;
+      margin-top: 10px;
+    }
+
+    .upload-form {
+      background: rgba(32, 32, 35, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    }
+
+    .upload-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+      min-height: 620px;
+    }
+
+    .upload-aside {
+      border-right: 1px solid var(--border);
+      background: rgba(24, 24, 27, 0.62);
+      padding: 28px;
+    }
+
+    .upload-main {
+      padding: 28px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-title h2 {
+      color: var(--off);
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .section-title span {
+      color: var(--gray2);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--off);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid rgba(82, 82, 91, 0.82);
+      border-radius: 8px;
+      background: rgba(18, 18, 20, 0.82);
+      color: var(--off);
+      font: inherit;
+      font-size: 14px;
+      padding: 11px 12px;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .form-group textarea {
+      min-height: 134px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .form-group select {
+      min-height: 128px;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--cyan);
+      background: rgba(18, 18, 20, 0.96);
+      box-shadow: 0 0 0 3px rgba(34, 153, 221, 0.14);
+    }
+
+    .cover-zone,
+    .pages-zone {
+      position: relative;
+      border: 1px dashed rgba(34, 153, 221, 0.48);
+      border-radius: 8px;
+      background: rgba(34, 153, 221, 0.06);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .cover-zone:hover,
+    .cover-zone.active,
+    .pages-zone:hover,
+    .pages-zone.active {
+      border-color: var(--cyan);
+      background: rgba(34, 153, 221, 0.1);
+    }
+
+    .cover-zone input,
+    .pages-zone input {
+      display: none;
+    }
+
+    .cover-label,
+    .pages-label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--gray1);
+      font-weight: 800;
+    }
+
+    .cover-label {
+      min-height: 460px;
+      padding: 22px;
+    }
+
+    .cover-preview {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: #111;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .cover-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cover-meta {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      background: rgba(0, 0, 0, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cover-zone.has-file .cover-preview {
+      display: block;
+    }
+
+    .hint {
+      color: var(--gray2);
+      font-size: 12px;
+      line-height: 1.55;
+      margin-top: 10px;
+    }
+
+    .chapter-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 22px;
+      margin-top: 22px;
+      margin-bottom: 16px;
+    }
+
+    .chapter-count {
+      color: var(--gray1);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .chapter-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .chapter-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(24, 24, 27, 0.48);
+      padding: 16px;
+    }
+
+    .chapter-head {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .pages-label {
+      min-height: 96px;
+      padding: 18px;
+    }
+
+    .pages-preview {
+      margin-top: 10px;
+      color: var(--gray1);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .pages-preview strong {
+      color: var(--cyan);
+    }
+
+    .button {
+      border: 0;
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 0 18px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+    }
+
+    .button-primary {
+      background: var(--cyan);
+      color: #fff;
+    }
+
+    .button-primary:hover {
+      background: var(--cyan2);
+    }
+
+    .button-outline {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--off);
+    }
+
+    .button-outline:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(34, 153, 221, 0.08);
+    }
+
+    .button-danger {
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.08);
+      color: #fca5a5;
+      min-width: 42px;
+      padding: 0 12px;
+    }
+
+    .button-danger:hover {
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.65);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 22px;
+      margin-top: 24px;
+    }
+
+    .submit-button {
+      min-width: 180px;
+    }
+
+    .submit-button[disabled] {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    @media (max-width: 920px) {
+      .upload-heading {
+        display: block;
+      }
+
+      .upload-status {
+        min-width: 0;
+        margin-top: 16px;
+      }
+
+      .upload-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .upload-aside {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .cover-label {
+        min-height: 360px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .upload-page {
+        padding: 28px 14px 56px;
+      }
+
+      .upload-aside,
+      .upload-main {
+        padding: 18px;
+      }
+
+      .form-row,
+      .chapter-head {
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions,
+      .chapter-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }

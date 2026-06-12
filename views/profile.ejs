@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile - KomikKu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+
+<%- include('partials/navbar', { currentPath: '/profile' }) %>
+
+<div class="profile-page">
+  <div class="profile-container">
+    <div class="profile-layout">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <% if (user.avatar) { %>
+              <img src="<%= user.avatar %>" alt="Avatar <%= user.firstName %>">
+            <% } else { %>
+              <span class="profile-avatar-placeholder">A</span>
+            <% } %>
+          </div>
+          <div class="profile-name"><%= user.firstName %> <%= user.lastName %></div>
+          <div class="profile-email"><%= user.email %></div>
+          <div class="profile-avatar-label">Akun pembaca dan author KomikKu.</div>
+        </div>
+
+        <div class="profile-info">
+          <div class="profile-item">
+            <div class="profile-label">Username</div>
+            <div class="profile-value">@<%= user.username %></div>
+          </div>
+          <div class="profile-item">
+            <div class="profile-label">Email</div>
+            <div class="profile-value"><%= user.email %></div>
+          </div>
+          <div class="profile-item">
+            <div class="profile-label">Nama Lengkap</div>
+            <div class="profile-value"><%= user.firstName %> <%= user.lastName %></div>
+          </div>
+          <div class="profile-item">
+            <div class="profile-label">ID Pengguna</div>
+            <div class="profile-value"><%= user.id %></div>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <a href="/" class="btn-action">Kembali ke Beranda</a>
+          <a href="/auth/logout" class="btn-action btn-logout">Logout</a>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <div class="history-section">
+          <h2 class="history-title">History</h2>
+
+          <% const validHistory = (readHistory || []).filter(item => item.comicId); %>
+          <% if (validHistory.length > 0) { %>
+            <div class="history-container">
+              <% validHistory.forEach(item => { %>
+                <a href="/komik/<%= item.comicId._id %>/baca/<%= item.chapterNumber %>" class="history-item">
+                  <div class="history-cover">
+                    <% if (item.comicId.coverImage) { %>
+                      <img src="<%= item.comicId.coverImage.startsWith('/') || item.comicId.coverImage.startsWith('http') ? item.comicId.coverImage : '/' + item.comicId.coverImage %>" alt="<%= item.comicTitle %>">
+                    <% } else { %>
+                      <span>Buku</span>
+                    <% } %>
+                  </div>
+                  <div class="history-info">
+                    <div class="history-comic-title"><%= item.comicTitle %></div>
+                    <div class="history-chapter">Ch. <%= item.chapterNumber %></div>
+                    <div class="history-date">
+                      <%
+                        const date = new Date(item.readAt);
+                        const now = new Date();
+                        const diffMs = now - date;
+                        const diffMins = Math.floor(diffMs / 60000);
+                        const diffHours = Math.floor(diffMs / 3600000);
+                        const diffDays = Math.floor(diffMs / 86400000);
+
+                        let timeStr = '';
+                        if (diffMins < 1) timeStr = 'Baru saja';
+                        else if (diffMins < 60) timeStr = diffMins + ' menit lalu';
+                        else if (diffHours < 24) timeStr = diffHours + ' jam lalu';
+                        else if (diffDays < 7) timeStr = diffDays + ' hari lalu';
+                        else timeStr = date.toLocaleDateString('id-ID');
+                      %>
+                      <%= timeStr %>
+                    </div>
+                  </div>
+                </a>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="history-empty">
+              <div class="history-empty-icon">-</div>
+              <p>Belum ada riwayat bacaan. Mulai baca komik favoritmu!</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <section class="author-entry-card">
+      <div class="author-entry-copy">
+        <div class="author-entry-kicker">Author Dashboard</div>
+        <h2>Kelola karya yang kamu upload</h2>
+        <p>Lihat semua komik milikmu, cek jumlah chapter, buka detail komik, atau hapus komik yang tidak ingin ditampilkan lagi.</p>
+      </div>
+      <div class="author-entry-actions">
+        <a href="/author" class="btn-action author-entry-primary">Buka Author Page</a>
+        <a href="/upload" class="btn-action">Upload Komik Baru</a>
+      </div>
+    </section>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+</body>
+</html>

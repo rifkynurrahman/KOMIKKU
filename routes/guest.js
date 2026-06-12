@@ -1,7 +1,7 @@
 // routes/guest.js
 const express = require('express');
 const router = express.Router();
-const Comic = require('../models/Comic'); 
+const Comic = require('../models/Comic');
 const { GENRES } = require('../data/dummyData'); 
 
 // Fungsi pembantu untuk mengubah angka mentah (1200000) menjadi format ringkas (1.2JT)
@@ -60,7 +60,11 @@ router.get('/browse', async (req, res) => {
 // GET /komik/:id — Detail komik
 router.get('/komik/:id', async (req, res) => {
   try {
-    const comicData = await Comic.findById(req.params.id);
+    const comicData = await Comic.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
     if (!comicData) return res.status(404).send('Komik tidak ditemukan');
 
     const comic = comicData.toObject();
@@ -92,6 +96,29 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
     const chData = comicData.chapters.find(c => c.chapterNumber === chNum);
     if (!chData) return res.status(404).send('Chapter tidak ditemukan');
 
+    // Jika user sudah login, catat ke history
+    if (req.session.user) {
+      const User = require('../models/User');
+      const user = await User.findById(req.session.user.id);
+      if (user) {
+        // Cek apakah sudah ada di history, jika ya update timestamp
+        const existingEntry = user.readHistory.find(h => 
+          h.comicId.toString() === req.params.id && h.chapterNumber === chNum
+        );
+        if (existingEntry) {
+          existingEntry.readAt = new Date();
+        } else {
+          user.readHistory.push({
+            comicId: req.params.id,
+            comicTitle: comicData.title,
+            chapterNumber: chNum,
+            readAt: new Date()
+          });
+        }
+        await user.save();
+      }
+    }
+
     const chapter = {
       number: chNum,
       title: chData.title,
@@ -116,10 +143,23 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
   }
 });
 
+// Rute Login & Register — redirect ke auth routes
+router.get('/login', (req, res) => {
+  res.redirect('/auth/login');
+});
 
-router.get('/login', (req, res) => res.render('login', { currentPath: '' }));
-router.post('/login', (req, res) => { /* ... */ });
-router.get('/register', (req, res) => res.render('register', { currentPath: '' }));
-router.post('/register', (req, res) => { /* ... */ });
+
+router.get('/register', (req, res) => {
+  res.redirect('/auth/register');
+});
+
+// Redirect profile & logout ke auth routes
+router.get('/profile', (req, res) => {
+  res.redirect('/auth/profile');
+});
+
+router.get('/logout', (req, res) => {
+  res.redirect('/auth/logout');
+});
 
 module.exports = router;

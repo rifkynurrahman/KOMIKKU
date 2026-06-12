@@ -205,7 +205,7 @@
     <div class="error-msg">⚠️ <%= error %></div>
     <% } %>
 
-    <form method="POST" action="/register">
+    <form id="registerForm">
       <div class="form-group">
         <label class="form-label">Daftar sebagai</label>
         <div class="role-select">
@@ -223,32 +223,32 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Nama Depan</label>
-          <input type="text" name="firstName" class="form-input" placeholder="Budi" value="<%= locals.firstName || '' %>" required>
+          <input type="text" name="firstName" id="firstName" class="form-input" placeholder="Budi" required>
         </div>
         <div class="form-group">
           <label class="form-label">Nama Belakang</label>
-          <input type="text" name="lastName" class="form-input" placeholder="Santoso" value="<%= locals.lastName || '' %>">
+          <input type="text" name="lastName" id="lastName" class="form-input" placeholder="Santoso">
         </div>
       </div>
 
       <div class="form-group">
         <label class="form-label">Username</label>
-        <input type="text" name="username" class="form-input" placeholder="budisantoso" value="<%= locals.username || '' %>" required>
+        <input type="text" name="username" id="username" class="form-input" placeholder="budisantoso" required>
       </div>
 
       <div class="form-group">
         <label class="form-label">Email</label>
-        <input type="email" name="email" class="form-input" placeholder="budi@email.com" value="<%= locals.email || '' %>" required>
+        <input type="email" name="email" id="email" class="form-input" placeholder="budi@email.com" required>
       </div>
 
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input type="password" name="password" class="form-input" placeholder="Minimal 8 karakter" required minlength="8">
+        <input type="password" name="password" id="password" class="form-input" placeholder="Minimal 6 karakter" required minlength="6">
       </div>
 
       <div class="form-group">
         <label class="form-label">Konfirmasi Password</label>
-        <input type="password" name="confirmPassword" class="form-input" placeholder="Ulangi password" required>
+        <input type="password" name="confirmPassword" id="confirmPassword" class="form-input" placeholder="Ulangi password" required>
       </div>
 
       <div class="terms-check" style="margin-bottom:24px">
@@ -262,21 +262,64 @@
     </form>
 
     <div class="auth-footer">
-      Sudah punya akun? <a href="/login">Masuk sekarang</a>
+      Sudah punya akun? <a href="/auth/login">Masuk sekarang</a>
     </div>
   </div>
 </div>
 
 <script>
+// Handle role selection dengan klik
 document.querySelectorAll('.role-option').forEach(opt => {
   opt.addEventListener('click', function() {
     document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
     this.classList.add('selected');
-    // Memastikan radio input di dalamnya ikut tercentang saat card di-klik
     const input = this.querySelector('input[type="radio"]');
     if(input) input.checked = true;
   });
 });
+
+// Handle form submit
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const terms = document.getElementById('terms').checked;
+  
+  // Validasi syarat dan ketentuan
+  if (!terms) {
+    alert('❌ Anda harus setuju dengan Syarat & Ketentuan dan Kebijakan Privasi');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/auth/register', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName, lastName, username, email, password, confirmPassword })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ ' + data.message);
+      // Auto-redirect ke home page setelah 1.5 detik
+      setTimeout(() => {
+        window.location.href = data.redirectTo || '/';
+      }, 1500);
+    } else {
+      alert('❌ ' + data.error);
+    }
+  } catch (err) {
+    alert('❌ Terjadi kesalahan: ' + err.message);
+  }
+});
 </script>
+
 </body>
 </html>

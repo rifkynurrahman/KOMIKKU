@@ -3,8 +3,17 @@ require('dotenv').config();
 
 const express = require('express');
 const path    = require('path');
+const session = require('express-session');
 
 const app = express();
+
+// Session middleware
+app.use(session({
+  secret: 'komikku-secret-key-2024',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 jam
+}));
 
 // View engine
 app.set('view engine', 'ejs');
@@ -12,14 +21,28 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/foto', express.static(path.join(__dirname, 'foto')));
+app.use('/logo', express.static(path.join(__dirname, 'logo')));
 
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Middleware untuk pass user ke semua views
+app.use((req, res, next) => {
+  res.locals.user = req.session.user || null;
+  next();
+});
+
 // Routes — Guest (no auth required)
 const guestRouter = require('./routes/guest');
+const authRouter = require('./routes/auth');
+const uploadRouter = require('./routes/upload');
+const authorRouter = require('./routes/author');
 app.use('/', guestRouter);
+app.use('/auth', authRouter);
+app.use('/upload', uploadRouter);
+app.use('/author', authorRouter);
 
 // 404 handler
 app.use((req, res) => {

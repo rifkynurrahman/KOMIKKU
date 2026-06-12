@@ -1,14 +1,101 @@
 <%
   const currentPath = locals.currentPath || '';
+  const user = locals.user || null;
 %>
 <nav>
   <a class="logo" href="/">✦ <span>KOMIK</span>KU</a>
   <div class="nav-links">
     <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Beranda</a>
     <a href="/browse" class="<%= currentPath === '/browse' ? 'active' : '' %>">Browse</a>
+    <% if (user) { %>
+      <a href="/upload" class="<%= currentPath === '/upload' ? 'active' : '' %>">Upload</a>
+    <% } %>
   </div>
   <div class="nav-btns">
-    <a href="/login" class="btn btn-outline">Masuk</a>
-    <a href="/register" class="btn btn-primary">Daftar</a>
+    <% if (user) { %>
+      <!-- Jika user sudah login, tampilkan profile icon -->
+      <div style="position: relative; display: inline-block;">
+        <button id="profileBtn" style="
+          background: none;
+          border: 1px solid rgba(34, 153, 221, 0.5);
+          color: #2299DD;
+          font-size: 20px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        " title="<%= user.firstName %> <%= user.lastName %>">
+          👤
+        </button>
+        
+        <!-- Dropdown menu -->
+        <div id="profileMenu" style="
+          position: absolute;
+          top: 50px;
+          right: 0;
+          background: #1a1a1d;
+          border: 1px solid rgba(34, 153, 221, 0.3);
+          border-radius: 12px;
+          min-width: 200px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          display: none;
+          z-index: 1000;
+          overflow: hidden;
+        ">
+          <div style="padding: 16px; border-bottom: 1px solid rgba(34, 153, 221, 0.2);">
+            <div style="font-size: 14px; font-weight: 700; color: #f5f5f5;"><%= user.firstName %> <%= user.lastName %></div>
+            <div style="font-size: 12px; color: #a3a3a3; margin-top: 4px;"><%= user.email %></div>
+          </div>
+          <a href="/profile" style="
+            display: block;
+            padding: 12px 16px;
+            color: #a3a3a3;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(34, 153, 221, 0.2);
+          " onmouseover="this.style.color='#2299DD'; this.style.backgroundColor='rgba(34, 153, 221, 0.05)'" onmouseout="this.style.color='#a3a3a3'; this.style.backgroundColor='transparent'">
+            📋 Profile
+          </a>
+          <a href="/logout" style="
+            display: block;
+            padding: 12px 16px;
+            color: #a3a3a3;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+          " onmouseover="this.style.color='#ef4444'; this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.color='#a3a3a3'; this.style.backgroundColor='transparent'">
+            🚪 Logout
+          </a>
+        </div>
+      </div>
+    <% } else { %>
+      <!-- Jika belum login, tampilkan buttons Masuk & Daftar -->
+      <a href="/auth/login" class="btn btn-outline">Masuk</a>
+      <a href="/auth/register" class="btn btn-primary">Daftar</a>
+    <% } %>
   </div>
 </nav>
+
+<script>
+// Handle dropdown profile menu
+const profileBtn = document.getElementById('profileBtn');
+const profileMenu = document.getElementById('profileMenu');
+
+if (profileBtn) {
+  profileBtn.addEventListener('click', () => {
+    profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
+  });
+  
+  // Close menu ketika klik di luar
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#profileBtn') && !e.target.closest('#profileMenu')) {
+      profileMenu.style.display = 'none';
+    }
+  });
+}
+</script>
