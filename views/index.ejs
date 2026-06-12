@@ -12,6 +12,10 @@
 <% 
   // Jaring pengaman supaya EJS tidak crash kalau variabel dari server tidak ada
   const safeTrending = (typeof trending !== 'undefined' && trending) ? trending : [];
+  
+  // [BARU] Jaring pengaman khusus untuk komik terbaru rilisan kreator
+  const safeTerbaru = (typeof terbaru !== 'undefined' && terbaru) ? terbaru : [];
+
   const safeFormatViews = (typeof formatViews === 'function') ? formatViews : function(num) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
@@ -70,6 +74,9 @@
   </div>
 </div>
 
+<!-- ========================================== -->
+<!-- SECTION 1: TRENDING (KOMIK TERPOPULER)     -->
+<!-- ========================================== -->
 <div class="section">
   <div class="section-head">
     <div class="section-badge">🔥 Trending</div>
@@ -100,11 +107,54 @@
     </a>
     <% }) %>
   </div>
+</div>
+
+<!-- ========================================== -->
+<!-- [BARU] SECTION 2: KOMIK TERBARU            -->
+<!-- Tempat komik "prabowo" bakal nongol langsung -->
+<!-- ========================================== -->
+<div class="section" style="padding-top:0">
+  <div class="section-head">
+    <div class="section-badge">🆕 Rilis Baru</div>
+    <h2 class="section-title">Komik Terbaru</h2>
+    <p class="section-sub">Karya segar langsung dari para kreator lokal</p>
+  </div>
+  <div class="comics-grid">
+    <% safeTerbaru.forEach(k => { %>
+    <a href="/komik/<%= k._id %>" class="comic-card">
+      <div class="comic-cover">
+        <img src="/<%= k.coverImage %>" alt="<%= k.title %>">
+        <% if(k.badge) { %>
+          <span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span>
+        <% } else if(k.status === 'Ongoing') { %>
+          <span class="card-badge" style="background: #2299DD;">NEW</span>
+        <% } %>
+      </div>
+      <div class="info">
+        <div class="genre-tag" style="color: #2299DD;"><%= k.genres && k.genres.length > 0 ? k.genres[0] : 'Umum' %></div>
+        <div class="comic-title"><%= k.title %></div>
+        
+        <div class="comic-ch">
+          Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
+          · <%= k.status %>
+        </div>
+        
+        <div class="meta-row">
+          <span>👁 <%= safeFormatViews(k.views) %></span>
+          <span>⭐ <%= k.rating %></span>
+        </div>
+      </div>
+    </a>
+    <% }) %>
+  </div>
   <div style="text-align:center;margin-top:36px">
     <a href="/browse" class="btn btn-outline" style="padding:12px 36px;font-size:15px">Lihat Semua Komik →</a>
   </div>
 </div>
 
+<!-- ========================================== -->
+<!-- SECTION 3: CREATOR CALL TO ACTION          -->
+<!-- ========================================== -->
 <div class="section" style="padding-top:0">
   <div class="creator-wrap">
     <div class="creator-text">

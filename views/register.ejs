@@ -6,6 +6,9 @@
 <title>Daftar — KomikKu</title>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
 .auth-page {
   min-height: 100vh;
@@ -115,10 +118,9 @@
   margin-bottom: 24px;
 }
 
-/* Perbaikan area penulisan role Kreator */
 .role-select {
   display: grid;
-  grid-template-columns: 1fr; /* Diubah jadi 1 kolom penuh agar seimbang */
+  grid-template-columns: 1fr;
   margin-top: 8px;
 }
 .role-option {
@@ -129,7 +131,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 16px; /* Layout horizontal agar estetik */
+  gap: 16px;
   transition: all 0.25s ease;
   position: relative;
 }
@@ -138,7 +140,6 @@
   opacity: 0;
   pointer-events: none;
 }
-/* Style ketika otomatis terpilih (checked) */
 .role-option:has(input:checked), .role-option.selected {
   border-color: #2299DD;
   background: rgba(34, 153, 221, 0.08);
@@ -290,9 +291,29 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const confirmPassword = document.getElementById('confirmPassword').value;
   const terms = document.getElementById('terms').checked;
   
-  // Validasi syarat dan ketentuan
+  // 1. Validasi Syarat & Ketentuan (SweetAlert2)
   if (!terms) {
-    alert('❌ Anda harus setuju dengan Syarat & Ketentuan dan Kebijakan Privasi');
+    Swal.fire({
+      icon: 'warning',
+      title: 'Persetujuan Wajib',
+      text: 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi KomikKu untuk melanjutkan.',
+      background: '#18181a',
+      color: '#f4f4f5',
+      confirmButtonColor: '#2299DD'
+    });
+    return;
+  }
+
+  // 2. Validasi Match Password (SweetAlert2)
+  if (password !== confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Password Tidak Cocok',
+      text: 'Pastikan kombinasi konfirmasi password sama dengan password utama Anda.',
+      background: '#18181a',
+      color: '#f4f4f5',
+      confirmButtonColor: '#ef4444'
+    });
     return;
   }
   
@@ -307,16 +328,43 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const data = await response.json();
     
     if (data.success) {
-      alert('✅ ' + data.message);
-      // Auto-redirect ke home page setelah 1.5 detik
+      // 3. Pop-up Sukses Registrasi Akun Baru
+      Swal.fire({
+        icon: 'success',
+        title: 'Registrasi Berhasil!',
+        text: data.message || 'Akun Kreator Anda telah berhasil dibuat.',
+        background: '#18181a',
+        color: '#f4f4f5',
+        confirmButtonColor: '#2299DD',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
       setTimeout(() => {
         window.location.href = data.redirectTo || '/';
-      }, 1500);
+      }, 2000);
+
     } else {
-      alert('❌ ' + data.error);
+      // 4. Pop-up Validasi Gagal (Misal: Username/Email sudah terdaftar)
+      Swal.fire({
+        icon: 'error',
+        title: 'Registrasi Gagal',
+        text: data.error || 'Terjadi kendala saat mendaftarkan akun.',
+        background: '#18181a',
+        color: '#f4f4f5',
+        confirmButtonColor: '#ef4444'
+      });
     }
   } catch (err) {
-    alert('❌ Terjadi kesalahan: ' + err.message);
+    // 5. Pop-up Kegagalan Request Sistem
+    Swal.fire({
+      icon: 'warning',
+      title: 'Terjadi Kesalahan!',
+      text: err.message,
+      background: '#18181a',
+      color: '#f4f4f5',
+      confirmButtonColor: '#2299DD'
+    });
   }
 });
 </script>

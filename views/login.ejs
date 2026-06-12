@@ -6,6 +6,9 @@
 <title>Masuk — KomikKu</title>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
 .auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:radial-gradient(ellipse at 60% 40%, rgba(34,153,221,0.07) 0%, transparent 70%), var(--bg)}
 .auth-card{background:rgba(32,32,35,0.6);border:1px solid rgba(63,63,70,0.5);border-radius:24px;padding:48px;width:100%;max-width:440px}
@@ -88,16 +91,44 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const data = await response.json();
     
     if (data.success) {
-      alert('✅ ' + data.message);
-      // TODO: Simpan token/session dan redirect ke dashboard
+      // 1. Pop-up Sukses Menggunakan SweetAlert2 Tema Gelap
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Berhasil!',
+        text: data.message || 'Selamat datang kembali di KomikKu!',
+        background: '#202023',
+        color: '#f5f5f5',
+        confirmButtonColor: '#2299DD',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Redirect otomatis setelah pop-up muncul sebentar
       setTimeout(() => {
         window.location.href = '/';
-      }, 1500);
+      }, 2000);
+
     } else {
-      alert('❌ ' + data.error);
+      // 2. Pop-up Gagal (Kombinasi password/user salah)
+      Swal.fire({
+        icon: 'error',
+        title: 'Akses Ditolak!',
+        text: data.error || 'Email atau password salah.',
+        background: '#202023',
+        color: '#f5f5f5',
+        confirmButtonColor: '#ef4444'
+      });
     }
   } catch (err) {
-    alert('❌ Terjadi kesalahan: ' + err.message);
+    // 3. Pop-up Error Sistem (Masalah jaringan/server)
+    Swal.fire({
+      icon: 'warning',
+      title: 'Terjadi Kesalahan!',
+      text: err.message,
+      background: '#202023',
+      color: '#f5f5f5',
+      confirmButtonColor: '#2299DD'
+    });
   }
 });
 </script>

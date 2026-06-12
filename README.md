@@ -63,35 +63,36 @@
 
 ## Struktur Folder
 
-```text
 komikku/
-├── controllers/        # Logika pemrosesan data (Disiapkan untuk Admin & Kreator)
-│   ├── authController.js
-│   ├── comicController.js
-│   └── adminController.js
-├── models/             # Skema database
-│   ├── User.js
-│   ├── Comic.js
-│   └── Chapter.js
-├── routes/             # Endpoint aplikasi
-│   ├── auth.js
-│   ├── comic.js
-│   ├── guest.js        # Logika sistem Guest ada di sini
-│   └── admin.js
+├── controllers/        # [Rencana] Logika pemrosesan data (Admin & Creator)
+├── middleware/         # [Rencana] Proteksi rute & pembatasan akses Admin
+├── data/               # Data statis aplikasi
+│   └── dummyData.js    # Menyimpan daftar genre komik
+├── foto/               # Penyimpanan gambar cover komik hasil upload
+├── logo/               # Aset gambar sistem (e.g., kamera.png)
+├── models/             # Skema database (Mongoose Models)
+│   ├── Comic.js        # Skema data komik & isi chapter didalamnya
+│   └── User.js         # Skema data pengguna & riwayat baca
+├── routes/             # Endpoint & Logika aplikasi (Routing)
+│   ├── auth.js         # Sistem login, register, & logout
+│   ├── author.js       # Fitur creator untuk mengelola & upload komik
+│   ├── guest.js        # Rute publik (Beranda, Browse, Detail, & Baca)
+│   └── admin.js        # [Rencana] Rute khusus Admin & Form CRUD Manajemen
+├── public/             # Aset statis front-end
+│   ├── avatar/         # Gambar profil pengguna
+│   ├── css/            # Style utama halaman (style.css)
+│   └── js/             # Script interaksi client-side (main.js)
 ├── views/              # Template UI (EJS)
-│   ├── layouts/
-│   ├── pages/
-│   └── partials/
-├── middleware/         # Autentikasi & Role Checker
-│   ├── authMiddleware.js
-│   └── roleMiddleware.js
-├── public/             # Aset statis
-│   ├── css/
-│   ├── js/
-│   └── images/
-├── .env.example
-├── app.js              # Entry point
-└── package.json
+│   ├── index.ejs       # Halaman utama (Trending & Rilis Terbaru)
+│   ├── browse.ejs      # Halaman pencarian & filter genre
+│   ├── detail.ejs      # Halaman info detail komik
+│   ├── read.ejs        # Halaman pembaca gambar-gambar chapter
+│   ├── admin/          # [Rencana] Folder khusus halaman EJS Admin
+│   │   └── dashboard.ejs # Form manajemen komik/user oleh admin
+│   └── partials/       # Komponen modular (navbar, footer)
+├── app.js              # Entry point utama aplikasi Express
+├── package.json        # Dependensi project & script running
+└── .env                # Variabel lingkungan (Koneksi MongoDB & Session Secret)
 
 ⚙️ Instalasi
 📌 Prasyarat (Wajib Diinstall Sebelum Mulai)

@@ -13,7 +13,6 @@
   </div>
   <div class="nav-btns">
     <% if (user) { %>
-      <!-- Jika user sudah login, tampilkan profile icon -->
       <div style="position: relative; display: inline-block;">
         <button id="profileBtn" style="
           background: none;
@@ -28,15 +27,16 @@
           align-items: center;
           justify-content: center;
           transition: all 0.2s;
+          padding: 0; /* Tambahan reset padding biar posisi pas di tengah */
+          overflow: hidden; /* Memastikan isi terpotong mengikuti bulatan tombol */
         " title="<%= user.firstName %> <%= user.lastName %>">
           <% if (user.avatar) { %>
-            <img src="<%= user.avatar %>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="<%= user.avatar %>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
           <% } else { %>
             <%= user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U' %>
           <% } %>
         </button>
         
-        <!-- Dropdown menu -->
         <div id="profileMenu" style="
           position: absolute;
           top: 50px;
@@ -78,7 +78,6 @@
         </div>
       </div>
     <% } else { %>
-      <!-- Jika belum login, tampilkan buttons Masuk & Daftar -->
       <a href="/auth/login" class="btn btn-outline">Masuk</a>
       <a href="/auth/register" class="btn btn-primary">Daftar</a>
     <% } %>

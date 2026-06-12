@@ -5,7 +5,6 @@ const Comic = require('../models/Comic');
 const User = require('../models/User');
 const { GENRES } = require('../data/dummyData'); 
 
-
 // Fungsi pembantu untuk mengubah angka mentah menjadi format ringkas (1.2JT)
 const formatViews = (num) => {
   if (!num) return '0';
@@ -18,19 +17,22 @@ const formatViews = (num) => {
   return num.toString();
 };
 
-// GET / — Beranda (SUDAH REAL-TIME)
+// GET / — Beranda (UPDATE: REAL-TIME TRENDING + TERBARU)
 router.get('/', async (req, res) => {
   try {
     // 1. Ambil 12 komik trending berdasarkan views terbanyak
     const trending = await Comic.find().sort({ views: -1 }).limit(12);
 
-    // 2. Hitung total komik riil di database
+    // [PERBAIKAN] 2. Ambil 6 komik terbaru berdasarkan input waktu (Biar komik baru lgsg muncul)
+    const terbaru = await Comic.find().sort({ createdAt: -1 }).limit(6);
+
+    // 3. Hitung total komik riil di database
     const totalKomik = await Comic.countDocuments({});
 
-    // 3. Hitung total akun pembaca yang terdaftar di database
+    // 4. Hitung total akun pembaca yang terdaftar di database
     const totalPembaca = await User.countDocuments({});
 
-    // 4. Hitung total akumulasi views dari seluruh komik yang ada (Menggunakan Aggregation)
+    // 5. Hitung total akumulasi views dari seluruh komik yang ada (Menggunakan Aggregation)
     const viewsAggregate = await Comic.aggregate([
       {
         $group: {
@@ -41,14 +43,14 @@ router.get('/', async (req, res) => {
     ]);
     const totalViews = viewsAggregate.length > 0 ? viewsAggregate[0].totalViews : 0;
 
-    // 5. Hitung total kreator (Jika ada role/fitur penulis, silakan sesuaikan filternya, misal: { isAuthor: true })
-    // Sementara kita buat proporsional atau ambil dari total user yang pernah upload komik
+    // 6. Hitung total kreator
     const totalKreator = await Comic.distinct('author').then(authors => authors.length) || 12; 
 
-    // Render ke index.ejs sambil mengirimkan variabel statistik
+    // Render ke index.ejs sambil mengirimkan variabel statistik & komik terbaru
     res.render('index', {
       currentPath: '/',
       trending,
+      terbaru, // <-- Variabel baru dikirim ke index.ejs
       formatViews,
       user: req.session.user,
       stats: {
@@ -73,7 +75,8 @@ router.get('/browse', async (req, res) => {
     if (genre) query.genres = genre; 
     if (q) query.title = { $regex: q, $options: 'i' };
 
-    const filteredComics = await Comic.find(query);
+    // Ditambahkan sort agar komik terbaru di menu browse berada di posisi paling atas
+    const filteredComics = await Comic.find(query).sort({ createdAt: -1 });
 
     res.render('browse', {
       currentPath: '/browse',
@@ -199,15 +202,13 @@ router.get('/logout', (req, res) => {
   res.redirect('/auth/logout');
 });
 
-
 // =======================================================
 // FITUR INTERAKSI USER (KOMENTAR, RATING, BOOKMARK)
 // =======================================================
 
-// 1. RUTE KOMENTAR (Kini Menggunakan req.session.user & REAL-TIME API)
+// 1. RUTE KOMENTAR
 router.post('/komik/:id/komentar', async (req, res) => {
   try {
-    // FIX: Menggunakan req.session.user sesuai sistem autentikasi kalian
     if (!req.session || !req.session.user) {
       return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu' });
     }
@@ -257,7 +258,6 @@ router.post('/komik/:id/rate', async (req, res) => {
       return res.send('<script>alert("Komik tidak ditemukan!"); window.history.back();</script>');
     }
 
-    // Mengupdate nilai rating komik langsung di database
     comic.rating = parseFloat(score).toFixed(1);
     await comic.save();
 
@@ -279,7 +279,6 @@ router.get('/komik/:id/bookmark', async (req, res) => {
     const comicId = req.params.id;
     const User = require('../models/User'); 
 
-    // Cari data user di DB berdasarkan ID session (bisa .id atau ._id tergantung skema login)
     const userId = req.session.user.id || req.session.user._id;
     const userDb = await User.findById(userId);
     
@@ -289,7 +288,6 @@ router.get('/komik/:id/bookmark', async (req, res) => {
 
     if (!userDb.bookmarks) userDb.bookmarks = [];
 
-    // Validasi agar tidak terjadi duplikasi bookmark
     if (userDb.bookmarks.includes(comicId)) {
       return res.send('<script>alert("Komik ini sudah ada di daftar bookmark kamu!"); window.history.back();</script>');
     }
