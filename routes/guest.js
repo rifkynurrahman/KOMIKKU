@@ -116,7 +116,7 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
   }
 });
 
-// Rute Login & Register tetap sama...
+
 router.get('/login', (req, res) => res.render('login', { currentPath: '' }));
 router.post('/login', (req, res) => { /* ... */ });
 router.get('/register', (req, res) => res.render('register', { currentPath: '' }));
