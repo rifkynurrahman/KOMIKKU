@@ -1,9 +1,11 @@
 // app.js — Entry point KomikKu
+
 require('dotenv').config();
 
 const express = require('express');
 const path    = require('path');
 const session = require('express-session');
+
 
 const app = express();
 
@@ -27,6 +29,7 @@ app.use('/logo', express.static(path.join(__dirname, 'logo')));
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 
 // Middleware untuk pass user ke semua views
 app.use((req, res, next) => {

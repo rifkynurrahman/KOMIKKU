@@ -118,6 +118,39 @@
     </section>
   </div>
 </div>
+<div class="bookmark-section" style="margin-top: 32px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+          <h2 class="history-title" style="color: #2299DD; display: flex; align-items: center; gap: 8px; font-size: 20px; margin-bottom: 16px;">
+            📌 Bookmark Kamu
+          </h2>
+          
+          <% if (typeof bookmarks !== 'undefined' && bookmarks.length > 0) { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px;">
+              <% bookmarks.forEach(komik => { %>
+                <a href="/komik/<%= komik._id %>" style="text-decoration: none; color: #fff; display: block; background: #141417; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#2299DD';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(255,255,255,0.05)';">
+                  <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 6px; margin-bottom: 8px;">
+                    <% if (komik.coverImage) { %>
+                      <img src="<%= komik.coverImage.startsWith('/') || komik.coverImage.startsWith('http') ? komik.coverImage : '/' + komik.coverImage %>" alt="<%= komik.title %>" style="width: 100%; height: 100%; object-fit: cover;">
+                    <% } else { %>
+                      <div style="width: 100%; height: 100%; background: #27272a; display: flex; align-items: center; justify-content: center; color: #737373; font-size: 12px;">No Cover</div>
+                    <% } %>
+                  </div>
+                  <div style="font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; color: #fff;">
+                    <%= komik.title %>
+                  </div>
+                  <div style="font-size: 11px; color: #2299DD; margin-top: 4px; padding: 0 2px;">
+                    ⭐ <%= komik.rating || '0.0' %>
+                  </div>
+                </a>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="history-item" style="display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1);">
+              <p style="color: #a3a3a3; font-size: 14px; margin: 0; text-align: center;">
+                🔖 Belum ada komik yang kamu bookmark. Yuk, cari komik dan klik "Tambah Ke Bookmark"!
+              </p>
+            </div>
+          <% } %>
+        </div>
 
 <%- include('partials/footer') %>
 

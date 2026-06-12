@@ -12,7 +12,11 @@ const userSchema = new mongoose.Schema({
     comicTitle: String,
     chapterNumber: Number,
     readAt: { type: Date, default: Date.now }
-  }]
+  }],
+  
+  // 🟢 SEKARANG BOOKMARK SUDAH MASUK DI TEMPAT YANG BENAR!
+  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comic' }]
 }, { timestamps: true });
+
 
 module.exports = mongoose.model('User', userSchema);

@@ -18,6 +18,14 @@
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num;
   };
+
+  // Jaring pengaman baru khusus objek statistik real-time dari database
+  const safeStats = (typeof stats !== 'undefined' && stats) ? stats : {
+    totalViews: 0,
+    totalPembaca: 0,
+    totalKreator: 0,
+    totalKomik: 0
+  };
 %>
 
 <%- include('partials/navbar', { currentPath: '/' }) %>
@@ -31,17 +39,18 @@
       <a href="/browse" class="btn btn-primary btn-hero">▶ Baca Sekarang</a>
       <a href="/register" class="btn btn-outline btn-hero">+ Upload Komik</a>
     </div>
+    
     <div class="hero-stats">
       <div>
-        <div class="stat-num">2.4JT</div>
-        <div class="stat-lbl">Pembaca</div>
+        <div class="stat-num" style="color: #2299DD;"><%= safeFormatViews(safeStats.totalViews) %></div>
+        <div class="stat-lbl">Pembaca (Views)</div>
       </div>
       <div>
-        <div class="stat-num">12K</div>
+        <div class="stat-num"><%= safeFormatViews(safeStats.totalKreator) %></div>
         <div class="stat-lbl">Kreator</div>
       </div>
       <div>
-        <div class="stat-num">85K</div>
+        <div class="stat-num"><%= safeFormatViews(safeStats.totalKomik) %></div>
         <div class="stat-lbl">Komik</div>
       </div>
     </div>
@@ -97,11 +106,13 @@
       <div class="section-badge">✍️ Untuk Kreator</div>
       <h2>JADILAH BAGIAN<br>DARI KAMI</h2>
       <p>Upload komikmu dan jangkau jutaan pembaca di seluruh Indonesia. Tools lengkap tersedia untuk mendukung kreativitasmu.</p>
+      
       <div class="creator-stats">
-        <div><div class="c-stat-num">2.4JT</div><div class="c-stat-lbl">Pembaca</div></div>
-        <div><div class="c-stat-num">12K</div><div class="c-stat-lbl">Kreator</div></div>
-        <div><div class="c-stat-num">85K</div><div class="c-stat-lbl">Komik</div></div>
+        <div><div class="c-stat-num" style="color: #2299DD;"><%= safeFormatViews(safeStats.totalViews) %></div><div class="c-stat-lbl">Total Views</div></div>
+        <div><div class="c-stat-num"><%= safeFormatViews(safeStats.totalKreator) %></div><div class="c-stat-lbl">Kreator</div></div>
+        <div><div class="c-stat-num"><%= safeFormatViews(safeStats.totalKomik) %></div><div class="c-stat-lbl">Komik</div></div>
       </div>
+      
       <div class="creator-actions">
         <a href="/register" class="btn btn-primary" style="padding:13px 32px;font-size:15px">+ Mulai Upload</a>
         <a href="#" class="btn btn-outline" style="padding:13px 32px;font-size:15px">Pelajari Lebih</a>
@@ -118,7 +129,7 @@
       </div>
 
       <div class="deco-p">
-        <div style="font-family: 'Bangers', cursive; font-size: 26px; color: #fff; line-height: 1;">1JT+ VIEWS</div>
+        <div style="font-family: 'Bangers', cursive; font-size: 26px; color: #fff; line-height: 1;"><%= safeFormatViews(safeStats.totalViews) %> VIEWS</div>
         <div class="deco-label">Potensimu</div>
       </div>
 

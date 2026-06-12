@@ -221,7 +221,7 @@ router.post('/register', async (req, res) => {
 });
 
 // ============================================================
-// GET /auth/profile — Render profile page
+// GET /auth/profile — Render profile page (DENGAN HISTORY & BOOKMARK)
 // ============================================================
 router.get('/profile', async (req, res) => {
   if (!req.session.user) {
@@ -229,11 +229,16 @@ router.get('/profile', async (req, res) => {
   }
   
   try {
-    // Ambil user dari database dengan populate history komik
-    const user = await User.findById(req.session.user.id).populate({
-      path: 'readHistory.comicId',
-      select: 'title coverImage'
-    });
+    // FIX: Kita populate sekaligus dua field: readHistory DAN bookmarks
+    const user = await User.findById(req.session.user.id)
+      .populate({
+        path: 'readHistory.comicId',
+        select: 'title coverImage'
+      })
+      .populate({
+        path: 'bookmarks',
+        select: 'title coverImage rating'
+      });
     
     if (!user) {
       return res.redirect('/auth/login');
@@ -243,9 +248,14 @@ router.get('/profile', async (req, res) => {
     const sortedHistory = user.readHistory.sort((a, b) => 
       new Date(b.readAt) - new Date(a.readAt)
     );
+
+    // Ambil array bookmarks, jika kosong berikan array kosong []
+    const userBookmarks = user.bookmarks || [];
+
     res.render('profile', { 
       currentPath: '/profile',
       readHistory: sortedHistory,
+      bookmarks: userBookmarks, // <-- Dikirim ke views/profile.ejs
       user
     });
   } catch (err) {

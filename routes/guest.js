@@ -2,9 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const Comic = require('../models/Comic');
+const User = require('../models/User');
 const { GENRES } = require('../data/dummyData'); 
 
-// Fungsi pembantu untuk mengubah angka mentah (1200000) menjadi format ringkas (1.2JT)
+
+// Fungsi pembantu untuk mengubah angka mentah menjadi format ringkas (1.2JT)
 const formatViews = (num) => {
   if (!num) return '0';
   if (num >= 1000000) {
@@ -16,15 +18,45 @@ const formatViews = (num) => {
   return num.toString();
 };
 
+// GET / — Beranda (SUDAH REAL-TIME)
 router.get('/', async (req, res) => {
   try {
-    // Mencari komik, diurutkan berdasarkan views terbanyak (-1), lalu ambil 12 teratas
+    // 1. Ambil 12 komik trending berdasarkan views terbanyak
     const trending = await Comic.find().sort({ views: -1 }).limit(12);
-    
+
+    // 2. Hitung total komik riil di database
+    const totalKomik = await Comic.countDocuments({});
+
+    // 3. Hitung total akun pembaca yang terdaftar di database
+    const totalPembaca = await User.countDocuments({});
+
+    // 4. Hitung total akumulasi views dari seluruh komik yang ada (Menggunakan Aggregation)
+    const viewsAggregate = await Comic.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: "$views" }
+        }
+      }
+    ]);
+    const totalViews = viewsAggregate.length > 0 ? viewsAggregate[0].totalViews : 0;
+
+    // 5. Hitung total kreator (Jika ada role/fitur penulis, silakan sesuaikan filternya, misal: { isAuthor: true })
+    // Sementara kita buat proporsional atau ambil dari total user yang pernah upload komik
+    const totalKreator = await Comic.distinct('author').then(authors => authors.length) || 12; 
+
+    // Render ke index.ejs sambil mengirimkan variabel statistik
     res.render('index', {
       currentPath: '/',
       trending,
-      formatViews // Kirim fungsi ini ke EJS agar bisa digunakan di template
+      formatViews,
+      user: req.session.user,
+      stats: {
+        totalViews,
+        totalPembaca,
+        totalKreator,
+        totalKomik
+      }
     });
   } catch (err) {
     console.error('Error di Beranda:', err);
@@ -49,7 +81,8 @@ router.get('/browse', async (req, res) => {
       genres: GENRES,
       activeGenre: genre || null,
       query: q || '',
-      formatViews // Kirim fungsi ke browse.ejs juga
+      formatViews,
+      user: req.session.user 
     });
   } catch (err) {
     console.error('Error di Browse:', err);
@@ -78,7 +111,13 @@ router.get('/komik/:id', async (req, res) => {
       _id: { $ne: comic._id }
     }).limit(4);
 
-    res.render('detail', { currentPath: '', comic, similar, formatViews });
+    res.render('detail', { 
+      currentPath: '', 
+      comic, 
+      similar, 
+      formatViews,
+      user: req.session.user 
+    });
   } catch (err) {
     console.error('Error di Detail Komik:', err);
     if (err.name === 'CastError') return res.status(404).send('Komik tidak ditemukan');
@@ -96,12 +135,10 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
     const chData = comicData.chapters.find(c => c.chapterNumber === chNum);
     if (!chData) return res.status(404).send('Chapter tidak ditemukan');
 
-    // Jika user sudah login, catat ke history
     if (req.session.user) {
       const User = require('../models/User');
       const user = await User.findById(req.session.user.id);
       if (user) {
-        // Cek apakah sudah ada di history, jika ya update timestamp
         const existingEntry = user.readHistory.find(h => 
           h.comicId.toString() === req.params.id && h.chapterNumber === chNum
         );
@@ -136,6 +173,7 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
       comic: comicData,
       chapter,
       allChapters,
+      user: req.session.user 
     });
   } catch (err) {
     console.error('Error di Reader Komik:', err);
@@ -148,7 +186,6 @@ router.get('/login', (req, res) => {
   res.redirect('/auth/login');
 });
 
-
 router.get('/register', (req, res) => {
   res.redirect('/auth/register');
 });
@@ -160,6 +197,112 @@ router.get('/profile', (req, res) => {
 
 router.get('/logout', (req, res) => {
   res.redirect('/auth/logout');
+});
+
+
+// =======================================================
+// FITUR INTERAKSI USER (KOMENTAR, RATING, BOOKMARK)
+// =======================================================
+
+// 1. RUTE KOMENTAR (Kini Menggunakan req.session.user & REAL-TIME API)
+router.post('/komik/:id/komentar', async (req, res) => {
+  try {
+    // FIX: Menggunakan req.session.user sesuai sistem autentikasi kalian
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu' });
+    }
+
+    const comicId = req.params.id;
+    const { text } = req.body;
+
+    if (!text || text.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Komentar tidak boleh kosong' });
+    }
+    
+    const comic = await Comic.findById(comicId);
+    if (!comic) {
+      return res.status(404).json({ success: false, message: 'Komik tidak ditemukan' });
+    }
+
+    const newComment = {
+      username: req.session.user.username,
+      text: text,
+      createdAt: new Date()
+    };
+
+    if (!comic.comments) comic.comments = [];
+    comic.comments.push(newComment);
+    await comic.save();
+
+    return res.json({ success: true, comment: newComment });
+
+  } catch (err) {
+    console.error('Error saat menyimpan komentar:', err);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
+  }
+});
+
+// 2. RUTE RATING (POST /komik/:id/rate)
+router.post('/komik/:id/rate', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.send('<script>alert("Harus login terlebih dahulu!"); window.history.back();</script>');
+    }
+
+    const comicId = req.params.id;
+    const { score } = req.body;
+
+    const comic = await Comic.findById(comicId);
+    if (!comic) {
+      return res.send('<script>alert("Komik tidak ditemukan!"); window.history.back();</script>');
+    }
+
+    // Mengupdate nilai rating komik langsung di database
+    comic.rating = parseFloat(score).toFixed(1);
+    await comic.save();
+
+    return res.send('<script>alert("Terima kasih atas ratingnya!"); window.location.href="/komik/' + comicId + '";</script>');
+
+  } catch (err) {
+    console.error('Error saat rating:', err);
+    return res.send('<script>alert("Gagal memberi rating!"); window.history.back();</script>');
+  }
+});
+
+// 3. RUTE BOOKMARK (GET /komik/:id/bookmark)
+router.get('/komik/:id/bookmark', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.send('<script>alert("Harus login terlebih dahulu!"); window.history.back();</script>');
+    }
+
+    const comicId = req.params.id;
+    const User = require('../models/User'); 
+
+    // Cari data user di DB berdasarkan ID session (bisa .id atau ._id tergantung skema login)
+    const userId = req.session.user.id || req.session.user._id;
+    const userDb = await User.findById(userId);
+    
+    if (!userDb) {
+      return res.send('<script>alert("User tidak ditemukan di database!"); window.history.back();</script>');
+    }
+
+    if (!userDb.bookmarks) userDb.bookmarks = [];
+
+    // Validasi agar tidak terjadi duplikasi bookmark
+    if (userDb.bookmarks.includes(comicId)) {
+      return res.send('<script>alert("Komik ini sudah ada di daftar bookmark kamu!"); window.history.back();</script>');
+    }
+
+    userDb.bookmarks.push(comicId);
+    await userDb.save();
+
+    return res.send('<script>alert("Berhasil menambahkan ke Bookmark!"); window.location.href="/komik/' + comicId + '";</script>');
+
+  } catch (err) {
+    console.error('Error saat bookmark:', err);
+    return res.send('<script>alert("Gagal menambahkan bookmark! Pastikan field `bookmarks` bertipe array di model User kalian."); window.history.back();</script>');
+  }
 });
 
 module.exports = router;

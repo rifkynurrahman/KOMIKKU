@@ -8,9 +8,8 @@
 <link rel="stylesheet" href="/css/style.css">
 <style>
 .detail-hero{
-  /* 1. DISESUAIKAN: Path background gambar menggunakan coverImage dari MongoDB */
   background:linear-gradient(to bottom, rgba(24,24,27,0) 0%, #18181B 100%),
-             url('/<%= comic.coverImage %>') center/cover no-repeat;
+              url('/<%= comic.coverImage %>') center/cover no-repeat;
   min-height:320px;display:flex;align-items:flex-end;
 }
 .detail-hero-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 48px 40px;display:flex;gap:36px;align-items:flex-end}
@@ -22,7 +21,22 @@
 .detail-tag{background:rgba(34,153,221,0.15);border:1px solid rgba(34,153,221,0.4);color:#2299DD;padding:3px 12px;border-radius:999px;font-size:11px;font-weight:700}
 .detail-stats{display:flex;gap:28px;font-size:13px;color:#a3a3a3}
 .detail-stat span{color:#f5f5f5;font-weight:700}
-.detail-body{max-width:1280px;margin:0 auto;padding:40px 48px;display:grid;grid-template-columns:1fr 340px;gap:48px}
+
+/* LAYOUT UTAMA */
+.detail-container-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 48px;
+}
+
+/* KITA BATASI GRIDS DUA KOLOM HANYA UNTUK AREA SINOPSIS & CHAPTER */
+.detail-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 48px;
+  align-items: flex-start;
+}
+
 .detail-desc{font-size:15px;color:#a3a3a3;line-height:1.7;margin-bottom:32px}
 .chapter-list{display:flex;flex-direction:column;gap:8px}
 .chapter-item{
@@ -46,6 +60,40 @@
 .guest-lock p{color:#a3a3a3;font-size:13px;margin-bottom:16px}
 .start-read-btn{display:block;width:100%;padding:14px;background:#2299DD;color:#fff;border-radius:12px;font-weight:700;font-size:15px;text-align:center;text-decoration:none;font-family:'Nunito',sans-serif;transition:background .2s}
 .start-read-btn:hover{background:#1A7FB8}
+
+.user-action-box{background:rgba(34,153,221,0.12);border:1px solid #2299DD;border-radius:16px;padding:24px;margin-bottom:20px;}
+.comment-box{background:rgba(32,32,35,0.4);border:1px solid rgba(63,63,70,0.5);border-radius:12px;padding:20px;margin-top:40px;}
+.comment-item{background:rgba(24,24,27,0.6);padding:14px;border-radius:8px;margin-bottom:12px;border-left:4px solid #2299DD;}
+
+/* RE-ADJUST WRAPPER SIDEBAR STICKY */
+.sidebar-sticky-wrapper {
+  position: sticky;
+  top: 95px;       /* Jarak aman dari atas browser pas di-scroll */
+  margin-top: 55px; /* Menurunkan posisi awal sidebar biar sejajar dengan "Daftar Chapter" */
+}
+
+/* RESPONSIVE LAYOUT UNTUK MOBILE HP */
+@media (max-width: 900px) {
+  .detail-container-wrapper {
+    padding: 20px;
+  }
+  .detail-body-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .detail-hero-inner {
+    padding: 0 20px 20px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+  .detail-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}
 </style>
 </head>
 <body>
@@ -68,7 +116,7 @@
       </div>
       <div class="detail-stats">
         <div>👁 <span><%= formatViews(comic.views) %></span> Views</div>
-        <div>⭐ <span><%= comic.rating %></span> Rating</div>
+        <div>⭐ <span><%= comic.rating || '0.0' %></span> Rating</div>
         <div>📖 <span><%= comic.chapters ? comic.chapters.length : 0 %></span> Chapter</div>
         <div>✍️ <span><%= comic.author %></span></div>
       </div>
@@ -76,73 +124,173 @@
   </div>
 </div>
 
-<div class="detail-body">
-  <div>
-    <div style="margin-bottom:8px">
-      <div class="section-badge" style="display:inline-flex">📝 Sinopsis</div>
-    </div>
-    <p class="detail-desc"><%= comic.synopsis || 'Tidak ada sinopsis untuk komik ini.' %></p>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div style="font-family:'Bangers',cursive;font-size:24px;letter-spacing:1px">Daftar Chapter</div>
-        <div style="font-size:12px;color:#737373"><%= comic.chapters ? comic.chapters.length : 0 %> chapter tersedia</div>
+<div class="detail-container-wrapper">
+  
+  <div class="detail-body-grid">
+    
+    <div>
+      <div style="margin-bottom:8px">
+        <div class="section-badge" style="display:inline-flex">📝 Sinopsis</div>
       </div>
-      <a href="/komik/<%= comic._id %>/baca/1" class="btn btn-primary" style="padding:10px 24px">Baca Chapter 1</a>
+      <p class="detail-desc"><%= comic.synopsis || 'Tidak ada sinopsis untuk komik ini.' %></p>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-family:'Bangers',cursive;font-size:24px;letter-spacing:1px">Daftar Chapter</div>
+          <div style="font-size:12px;color:#737373"><%= comic.chapters ? comic.chapters.length : 0 %> chapter tersedia</div>
+        </div>
+        <a href="/komik/<%= comic._id %>/baca/1" class="btn btn-primary" style="padding:10px 24px">Baca Chapter 1</a>
+      </div>
+
+      <div class="chapter-list">
+        <% if(comic.chapters && comic.chapters.length > 0) { %>
+          <% comic.chapters.forEach(ch => { %>
+          <a href="/komik/<%= comic._id %>/baca/<%= ch.number %>" class="chapter-item">
+            <div>
+              <div class="ch-num">Chapter <%= ch.number %></div>
+              <div class="ch-title"><%= ch.title %></div>
+            </div>
+            <div class="ch-date"><%= comic.status %></div>
+          </a>
+          <% }) %>
+        <% } else { %>
+          <p style="color:#737373; font-size: 14px;">Belum ada chapter dirilis.</p>
+        <% } %>
+      </div>
     </div>
 
-    <div class="chapter-list">
-      <% if(comic.chapters && comic.chapters.length > 0) { %>
-        <% comic.chapters.forEach(ch => { %>
-        <a href="/komik/<%= comic._id %>/baca/<%= ch.number %>" class="chapter-item">
-          <div>
-            <div class="ch-num">Chapter <%= ch.number %></div>
-            <div class="ch-title"><%= ch.title %></div>
+    <div>
+      <div class="sidebar-sticky-wrapper">
+        <% if (typeof user !== 'undefined' && user) { %>
+          <div class="user-action-box">
+            <div style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:6px;color:#fff">Menu Pembaca</div>
+            <p style="color:#a3a3a3;font-size:12px;margin-bottom:16px">Halo <strong><%= user.username %></strong>, kelola komik favoritmu disini.</p>
+            
+            <a href="/komik/<%= comic._id %>/bookmark" class="btn btn-primary" style="display:block;text-align:center;padding:12px;text-decoration:none;margin-bottom:14px;background:#10b981;border-color:#10b981">📌 Tambah Ke Bookmark</a>
+            
+            <form action="/komik/<%= comic._id %>/rate" method="POST" style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px">
+              <label style="font-size:12px;color:#a3a3a3;display:block;margin-bottom:6px">Beri Rating Komik:</label>
+              <div style="display:flex;gap:6px">
+                <select name="score" style="background:#27272a;color:#fff;border:1px solid rgba(63,63,70,0.5);padding:8px;border-radius:6px;flex:1">
+                  <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                  <option value="4">⭐⭐⭐⭐ (4)</option>
+                  <option value="3">⭐⭐⭐ (3)</option>
+                  <option value="2">⭐⭐ (2)</option>
+                  <option value="1">⭐ (1)</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="padding:0 14px">Kirim</button>
+              </div>
+            </form>
           </div>
-          <div class="ch-date"><%= comic.status %></div>
-        </a>
-        <% }) %>
-      <% } else { %>
-        <p style="color:#737373; font-size: 14px;">Belum ada chapter dirilis.</p>
-      <% } %>
-    </div>
-  </div>
-
-  <div>
-    <div class="guest-lock" style="margin-bottom:20px">
-      <div style="font-size:28px;margin-bottom:10px">🔖</div>
-      <p>Login untuk bookmark, komentar, dan rating komik ini!</p>
-      <a href="/login" class="btn btn-primary" style="display:block;text-align:center;padding:12px;text-decoration:none">Masuk Sekarang</a>
-      <div style="margin-top:10px;text-align:center;font-size:12px;color:#737373">
-        Belum punya akun? <a href="/register" style="color:#2299DD;font-weight:700">Daftar gratis</a>
-      </div>
-    </div>
-
-    <a href="/komik/<%= comic._id %>/baca/1" class="start-read-btn" style="display:block;margin-bottom:20px">▶ Mulai Baca</a>
-
-    <div class="sidebar-card">
-      <div class="sidebar-title">Komik Serupa</div>
-      <% if(locals.similar && similar.length > 0) { %>
-        <% similar.forEach(s => { %>
-        <a href="/komik/<%= s._id %>" class="similar-item">
-          <div class="similar-cover"><img src="/<%= s.coverImage %>" alt="<%= s.title %>"></div>
-          <div class="similar-info">
-            <div class="s-title"><%= s.title %></div>
-            <div class="s-ch">
-              <%= s.genres && s.genres.length > 0 ? s.genres[0] : 'Umum' %> 
-              · Ch.<%= s.chapters && s.chapters.length > 0 ? s.chapters[s.chapters.length - 1].chapterNumber : '1' %>
+        <% } else { %>
+          <div class="guest-lock" style="margin-bottom:20px">
+            <div style="font-size:28px;margin-bottom:10px">🔖</div>
+            <p>Login untuk bookmark, komentar, dan rating komik ini!</p>
+            <a href="/login" class="btn btn-primary" style="display:block;text-align:center;padding:12px;text-decoration:none">Masuk Sekarang</a>
+            <div style="margin-top:10px;text-align:center;font-size:12px;color:#737373">
+              Belum punya akun? <a href="/register" style="color:#2299DD;font-weight:700">Daftar gratis</a>
             </div>
           </div>
-        </a>
+        <% } %>
+
+        <a href="/komik/<%= comic._id %>/baca/1" class="start-read-btn" style="display:block;margin-bottom:20px">▶ Mulai Baca</a>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Komik Serupa</div>
+          <% if(locals.similar && similar.length > 0) { %>
+            <% similar.forEach(s => { %>
+            <a href="/komik/<%= s._id %>" class="similar-item">
+              <div class="similar-cover"><img src="/<%= s.coverImage %>" alt="<%= s.title %>"></div>
+              <div class="similar-info">
+                <div class="s-title"><%= s.title %></div>
+                <div class="s-ch">
+                  <%= s.genres && s.genres.length > 0 ? s.genres[0] : 'Umum' %> 
+                  · Ch.<%= s.chapters && s.chapters.length > 0 ? s.chapters[s.chapters.length - 1].number : '1' %>
+                </div>
+              </div>
+            </a>
+            <% }) %>
+          <% } else { %>
+            <p style="color:#737373; font-size: 12px;">Tidak ada komik serupa ditemukan.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+  </div> <div class="comment-box">
+    <div style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:16px;color:#2299DD">💬 Komentar Pembaca</div>
+    
+    <% if (typeof user !== 'undefined' && user) { %>
+      <form id="realtime-comment-form" style="margin-bottom:24px">
+        <textarea id="comment-text" name="text" placeholder="Tulis opini kamu tentang komik ini..." required style="width:100%;height:80px;background:#18181b;color:#fff;border:1px solid rgba(63,63,70,0.5);border-radius:8px;padding:12px;font-family:inherit;resize:none;margin-bottom:8px"></textarea>
+        <button type="submit" class="btn btn-primary" style="padding:8px 20px">Kirim Komentar</button>
+      </form>
+    <% } else { %>
+      <p style="color:#737373;font-size:13px;background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin-bottom:24px;border:1px dashed rgba(63,63,70,0.4)">
+        🔒 Ingin menulis komentar? Silakan <a href="/login" style="color:#2299DD;text-decoration:none;font-weight:700">Login disini</a> terlebih dahulu.
+      </p>
+    <% } %>
+
+    <div class="comments-list" id="comments-container">
+      <% if(comic.comments && comic.comments.length > 0) { %>
+        <% comic.comments.forEach(c => { %>
+          <div class="comment-item">
+            <div style="font-weight:700;color:#2299DD;font-size:13px;margin-bottom:4px"><%= c.username %></div>
+            <div style="color:#e4e4e7;font-size:14px;line-height:1.4"><%= c.text %></div>
+          </div>
         <% }) %>
       <% } else { %>
-        <p style="color:#737373; font-size: 12px;">Tidak ada komik serupa ditemukan.</p>
+        <p class="no-comment-text" style="color:#737373;font-size:13px;font-style:italic">Belum ada komentar. Jadilah yang pertama berdiskusi!</p>
       <% } %>
     </div>
   </div>
-</div>
 
-<%- include('partials/footer') %>
+</div> <%- include('partials/footer') %>
 <script src="/js/main.js"></script>
+
+<script>
+const commentForm = document.getElementById('realtime-comment-form');
+if (commentForm) {
+  commentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const textInput = document.getElementById('comment-text');
+    const commentText = textInput.value;
+    const container = document.getElementById('comments-container');
+    const noCommentText = document.querySelector('.no-comment-text');
+
+    try {
+      const response = await fetch('/komik/<%= comic._id %>/komentar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: commentText })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (noCommentText) noCommentText.remove();
+
+        const newCommentHTML = `
+          <div class="comment-item">
+            <div style="font-weight:700;color:#2299DD;font-size:13px;margin-bottom:4px">${data.comment.username}</div>
+            <div style="color:#e4e4e7;font-size:14px;line-height:1.4">${data.comment.text}</div>
+          </div>
+        `;
+        
+        container.insertAdjacentHTML('afterbegin', newCommentHTML);
+        textInput.value = '';
+      } else {
+        alert(data.message || 'Gagal mengirim komentar');
+      }
+    } catch (err) {
+      console.error('Error saat kirim komentar:', err);
+      alert('Gagal terhubung ke server');
+    }
+  });
+}
+</script>
 </body>
 </html>
