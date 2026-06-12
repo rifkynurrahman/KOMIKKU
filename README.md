@@ -62,7 +62,7 @@
 ---
 
 ## Struktur Folder
-
+```text
 komikku/
 ├── controllers/        # [Rencana] Logika pemrosesan data (Admin & Creator)
 ├── middleware/         # [Rencana] Proteksi rute & pembatasan akses Admin
