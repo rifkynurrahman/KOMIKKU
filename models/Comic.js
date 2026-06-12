@@ -6,6 +6,7 @@ const comicSchema = new mongoose.Schema({
   synopsis: { type: String },
   coverImage: { type: String }, // Menyimpan nama file/URL gambar cover
   genres: [{ type: String }],   // Array berisi string genre (Fantasy, Action, dll)
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: { type: String, default: 'Ongoing' },
   views: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },

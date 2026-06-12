@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Komik - KomikKu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/upload.css">
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <main class="upload-page">
+    <div class="upload-shell">
+      <div class="upload-heading">
+        <div>
+          <div class="upload-kicker">Creator Studio</div>
+          <h1>Upload komik dan chapter</h1>
+          <p>Lengkapi metadata komik, unggah cover, lalu tambahkan chapter dengan urutan gambar halaman yang akan dibaca pembaca.</p>
+        </div>
+        <div class="upload-status">
+          <div class="message error" id="errorMsg"></div>
+          <div class="message success" id="successMsg"></div>
+        </div>
+      </div>
+
+      <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+        <div class="upload-grid">
+          <aside class="upload-aside">
+            <div class="section-title">
+              <h2>Cover</h2>
+              <span>Wajib</span>
+            </div>
+
+            <div class="cover-zone" id="coverZone">
+              <input type="file" id="coverImage" name="coverImage" required accept="image/jpeg,image/jpg,image/png,image/webp">
+              <label class="cover-label" for="coverImage">
+                Pilih cover komik
+              </label>
+              <div class="cover-preview" id="coverPreview">
+                <img id="coverPreviewImage" alt="Preview cover">
+                <div class="cover-meta" id="coverMeta"></div>
+              </div>
+            </div>
+            <p class="hint">Format yang didukung: JPG, PNG, WEBP. Maksimal 5 MB per file.</p>
+          </aside>
+
+          <section class="upload-main">
+            <div class="section-title">
+              <h2>Detail komik</h2>
+              <span>Metadata</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="title">Judul komik</label>
+                <input type="text" id="title" name="title" required placeholder="Contoh: Negeri Tanpa Nama">
+              </div>
+
+              <div class="form-group">
+                <label for="author">Pengarang</label>
+                <input type="text" id="author" name="author" required placeholder="Nama pengarang">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="description">Sinopsis</label>
+              <textarea id="description" name="description" required placeholder="Tulis ringkasan cerita yang jelas dan menarik."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="genres">Genre</label>
+              <select id="genres" name="genres" required multiple>
+                <option value="Action">Action</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Comedy">Comedy</option>
+                <option value="Drama">Drama</option>
+                <option value="Fantasy">Fantasy</option>
+                <option value="Horror">Horror</option>
+                <option value="Romance">Romance</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="Slice of Life">Slice of Life</option>
+                <option value="Thriller">Thriller</option>
+              </select>
+              <p class="hint">Tahan Ctrl untuk memilih lebih dari satu genre.</p>
+            </div>
+
+            <div class="chapter-toolbar">
+              <div>
+                <div class="section-title" style="margin-bottom: 4px;">
+                  <h2>Chapter</h2>
+                  <span>Gambar halaman</span>
+                </div>
+                <div class="chapter-count" id="chapterCount">0 chapter</div>
+              </div>
+              <button type="button" class="button button-outline" id="addChapterBtn">Tambah Chapter</button>
+            </div>
+
+            <div class="chapter-list" id="chapterList"></div>
+
+            <div class="form-actions">
+              <a href="/profile" class="button button-outline">Batal</a>
+              <button type="submit" class="button button-primary submit-button" id="submitBtn">Simpan Komik</button>
+            </div>
+          </section>
+        </div>
+      </form>
+    </div>
+  </main>
+  <script src="/js/upload.js"></script>
+</body>
+</html>
+

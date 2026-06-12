@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Author Dashboard - KomikKu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/author.css">
+</head>
+<body>
+
+<%- include('partials/navbar', { currentPath: '/author' }) %>
+
+<main class="author-page">
+  <div class="author-shell">
+    <section class="author-hero">
+      <div>
+        <div class="author-kicker">Author Dashboard</div>
+        <h1>Karya milik <%= user.firstName %></h1>
+        <p>Kelola komik yang sudah kamu upload. Kamu bisa membuka halaman detail, melihat ringkasan performa, atau menghapus komik milikmu sendiri.</p>
+      </div>
+      <div class="author-actions">
+        <a href="/upload" class="author-button author-button-primary">Upload Komik</a>
+        <a href="/profile" class="author-button author-button-outline">Kembali ke Profile</a>
+      </div>
+    </section>
+
+    <section class="author-stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Komik</div>
+        <div class="stat-value"><%= totals.comics %></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Chapter</div>
+        <div class="stat-value"><%= totals.chapters %></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Views</div>
+        <div class="stat-value"><%= totals.views %></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Rata-rata Views</div>
+        <div class="stat-value"><%= totals.averageViews %></div>
+      </div>
+      <div class="stat-card stat-card-wide">
+        <div class="stat-label">Komik Terbanyak Dilihat</div>
+        <div class="stat-value stat-value-title"><%= totals.topComicTitle %></div>
+        <div class="stat-note"><%= totals.topComicViews %> views</div>
+      </div>
+    </section>
+
+    <section class="author-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Daftar Komik</h2>
+          <p>Semua komik yang terhubung dengan akun author kamu.</p>
+        </div>
+        <div class="panel-count"><%= comics.length %> item</div>
+      </div>
+
+      <% if (comics.length > 0) { %>
+        <div class="author-comics">
+          <% comics.forEach(comic => { %>
+            <article class="author-comic-card">
+              <a href="/komik/<%= comic._id %>" class="comic-cover-link">
+                <div class="comic-cover-box">
+                  <% if (comic.coverImage) { %>
+                    <img src="<%= toPublicImagePath(comic.coverImage) %>" alt="<%= comic.title %>">
+                  <% } else { %>
+                    <span>No Cover</span>
+                  <% } %>
+                </div>
+              </a>
+
+              <div class="comic-body">
+                <div class="comic-topline">
+                  <span><%= comic.status || 'Ongoing' %></span>
+                  <span><%= comic.createdAt ? new Date(comic.createdAt).toLocaleDateString('id-ID') : '-' %></span>
+                </div>
+
+                <h3><%= comic.title %></h3>
+                <p><%= comic.synopsis || 'Belum ada sinopsis.' %></p>
+
+                <% if (comic.genres && comic.genres.length > 0) { %>
+                  <div class="comic-tags">
+                    <% comic.genres.slice(0, 4).forEach(genre => { %>
+                      <span><%= genre %></span>
+                    <% }) %>
+                  </div>
+                <% } %>
+
+                <div class="comic-metrics">
+                  <div>
+                    <strong><%= comic.chapters ? comic.chapters.length : 0 %></strong>
+                    <span>Chapter</span>
+                  </div>
+                  <div>
+                    <strong><%= comic.views || 0 %></strong>
+                    <span>Views</span>
+                  </div>
+                  <div>
+                    <strong><%= comic.rating || 0 %></strong>
+                    <span>Rating</span>
+                  </div>
+                </div>
+
+                <div class="comic-actions">
+                  <a href="/komik/<%= comic._id %>" class="author-button author-button-outline">Lihat Detail</a>
+                  <button type="button" class="author-button author-button-outline toggle-chapter-form">Tambah Chapter</button>
+                  <form action="/author/comics/<%= comic._id %>/delete" method="POST" class="delete-comic-form">
+                    <button type="submit" class="author-button author-button-danger">Hapus</button>
+                  </form>
+                </div>
+
+                <form action="/author/comics/<%= comic._id %>/chapters" method="POST" enctype="multipart/form-data" class="add-chapter-form">
+                  <div class="chapter-form-head">
+                    <strong>Tambah chapter terbaru</strong>
+                    <span>Unggah gambar sesuai urutan halaman</span>
+                  </div>
+                  <div class="chapter-form-grid">
+                    <div class="author-field">
+                      <label for="chapterNumber_<%= comic._id %>">Nomor</label>
+                      <input
+                        type="number"
+                        id="chapterNumber_<%= comic._id %>"
+                        name="chapterNumber"
+                        min="1"
+                        required
+                        value="<%= comic.chapters && comic.chapters.length > 0 ? Math.max(...comic.chapters.map(chapter => chapter.chapterNumber || 0)) + 1 : 1 %>"
+                      >
+                    </div>
+                    <div class="author-field">
+                      <label for="chapterTitle_<%= comic._id %>">Judul chapter</label>
+                      <input
+                        type="text"
+                        id="chapterTitle_<%= comic._id %>"
+                        name="chapterTitle"
+                        required
+                        value="Chapter <%= comic.chapters && comic.chapters.length > 0 ? Math.max(...comic.chapters.map(chapter => chapter.chapterNumber || 0)) + 1 : 1 %>"
+                      >
+                    </div>
+                  </div>
+                  <div class="author-field">
+                    <label for="chapterPages_<%= comic._id %>">Gambar halaman</label>
+                    <input
+                      type="file"
+                      id="chapterPages_<%= comic._id %>"
+                      name="chapterPages"
+                      class="chapter-pages-input"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      multiple
+                      required
+                    >
+                    <div class="chapter-pages-preview">Belum ada gambar dipilih.</div>
+                  </div>
+                  <div class="chapter-form-actions">
+                    <button type="submit" class="author-button author-button-primary">Simpan Chapter</button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="author-empty">
+          <h3>Belum ada komik yang kamu upload</h3>
+          <p>Mulai dengan mengunggah cover, metadata, dan chapter pertama dari halaman upload.</p>
+          <a href="/upload" class="author-button author-button-primary">Upload Komik Pertama</a>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</main>
+
+<script src="/js/author.js"></script>
+
+<%- include('partials/footer') %>
+
+</body>
+</html>
