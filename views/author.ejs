@@ -118,7 +118,8 @@
                     <strong>Tambah chapter terbaru</strong>
                     <span>Unggah gambar sesuai urutan halaman</span>
                   </div>
-                  <div class="chapter-form-grid">
+                  
+                  <div class="chapter-form-grid" style="display: grid; grid-template-columns: 1fr 2fr 1.5fr; gap: 15px;">
                     <div class="author-field">
                       <label for="chapterNumber_<%= comic._id %>">Nomor</label>
                       <input
@@ -126,7 +127,6 @@
                         id="chapterNumber_<%= comic._id %>"
                         name="chapterNumber"
                         min="1"
-                        required
                         value="<%= comic.chapters && comic.chapters.length > 0 ? Math.max(...comic.chapters.map(chapter => chapter.chapterNumber || 0)) + 1 : 1 %>"
                       >
                     </div>
@@ -136,12 +136,24 @@
                         type="text"
                         id="chapterTitle_<%= comic._id %>"
                         name="chapterTitle"
-                        required
                         value="Chapter <%= comic.chapters && comic.chapters.length > 0 ? Math.max(...comic.chapters.map(chapter => chapter.chapterNumber || 0)) + 1 : 1 %>"
                       >
                     </div>
+                    
+                    <div class="author-field">
+                      <label for="status_<%= comic._id %>">Status Komik</label>
+                      <select 
+                        id="status_<%= comic._id %>" 
+                        name="status" 
+                        style="width: 100%; padding: 11px; background: #1c1c1e; color: #fff; border: 1px solid #333; border-radius: 6px; font-size: 14px; font-family: 'Nunito', sans-serif; font-weight: 600; cursor: pointer;"
+                      >
+                        <option value="Ongoing" <%= (comic.status === 'Ongoing' || !comic.status) ? 'selected' : '' %>>Ongoing</option>
+                        <option value="Completed" <%= comic.status === 'Completed' ? 'selected' : '' %>>Completed</option>
+                      </select>
+                    </div>
                   </div>
-                  <div class="author-field">
+
+                  <div class="author-field" style="margin-top: 15px;">
                     <label for="chapterPages_<%= comic._id %>">Gambar halaman</label>
                     <input
                       type="file"
@@ -150,7 +162,6 @@
                       class="chapter-pages-input"
                       accept="image/jpeg,image/jpg,image/png,image/webp"
                       multiple
-                      required
                     >
                     <div class="chapter-pages-preview">Belum ada gambar dipilih.</div>
                   </div>
@@ -174,6 +185,32 @@
 </main>
 
 <script src="/js/author.js"></script>
+
+<script>
+  document.querySelectorAll('.add-chapter-form').forEach(form => {
+    const fileInput = form.querySelector('.chapter-pages-input');
+    const numberInput = form.querySelector('input[name="chapterNumber"]');
+    const titleInput = form.querySelector('input[name="chapterTitle"]');
+
+    function adjustRequiredFields() {
+      if (fileInput.files.length > 0) {
+        // Jika ada file yang dipilih, Nomor & Judul wajib diisi untuk chapter baru
+        numberInput.setAttribute('required', 'required');
+        titleInput.setAttribute('required', 'required');
+      } else {
+        // Jika file kosong, hapus required agar bisa update status komik saja
+        numberInput.removeAttribute('required');
+        titleInput.removeAttribute('required');
+      }
+    }
+
+    // Jalankan pengecekan setiap kali input file berubah
+    fileInput.addEventListener('change', adjustRequiredFields);
+    
+    // Jalankan sekali saat pertama kali halaman dimuat
+    adjustRequiredFields();
+  });
+</script>
 
 <%- include('partials/footer') %>
 

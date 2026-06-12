@@ -10,6 +10,11 @@ const comicSchema = new mongoose.Schema({
   status: { type: String, default: 'Ongoing' },
   views: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
+  status: { 
+    type: String, 
+    enum: ['Ongoing', 'Completed'], // Membatasi inputan hanya boleh 2 kata ini
+    default: 'Ongoing' 
+  },
   
   chapters: [{
     chapterNumber: Number,

@@ -11,19 +11,25 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// MIDDLEWARE: Ditambahkan session reload agar status login sinkron & aman (FIXED ✨)
 function requireLogin(req, res, next) {
-  if (!req.session.user) {
-    if (req.method === 'GET') {
-      return res.redirect('/auth/login');
-    }
-
-    return res.status(401).json({
-      success: false,
-      error: 'Anda harus login terlebih dahulu'
-    });
+  if (!req.session) {
+    if (req.method === 'GET') return res.redirect('/auth/login');
+    return res.status(401).json({ success: false, error: 'Anda harus login terlebih dahulu' });
   }
 
-  next();
+  req.session.reload((err) => {
+    if (err || !req.session.user) {
+      if (req.method === 'GET') {
+        return res.redirect('/auth/login');
+      }
+      return res.status(401).json({
+        success: false,
+        error: 'Anda harus login terlebih dahulu'
+      });
+    }
+    next();
+  });
 }
 
 const storage = multer.diskStorage({
@@ -90,7 +96,8 @@ router.post('/', requireLogin, (req, res) => {
     }
 
     try {
-      const { title, description, author, genres } = req.body;
+      // 1. TAMBAHKAN field 'status' untuk ditangkap dari request body form (FIXED ✨)
+      const { title, description, author, genres, status } = req.body;
 
       if (!title || !description || !author || !genres) {
         removeUploadedFiles(files);
@@ -136,11 +143,13 @@ router.post('/', requireLogin, (req, res) => {
 
       const genreList = Array.isArray(genres) ? genres : [genres];
 
+      // 2. Masukkan field status ke dalam inisialisasi dokumen Mongoose (FIXED ✨)
       const newComic = new Comic({
         title,
         author,
         synopsis: description,
         genres: genreList.filter(Boolean),
+        status: status || 'Ongoing', // Menyimpan status sesuai pilihan author (Ongoing / Completed)
         coverImage: `foto/${coverFile.filename}`,
         uploadedBy: req.session.user.id,
         chapters,

@@ -11,6 +11,27 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// MIDDLEWARE: Proteksi login stabil memakai reload session (FIXED ✨)
+function requireLogin(req, res, next) {
+  if (!req.session) {
+    if (req.method === 'GET') return res.redirect('/auth/login');
+    return res.status(401).json({ success: false, error: 'Anda harus login' });
+  }
+
+  req.session.reload((err) => {
+    if (err || !req.session.user) {
+      if (req.method === 'GET') {
+        return res.redirect('/auth/login');
+      }
+      return res.status(401).json({
+        success: false,
+        error: 'Anda harus login terlebih dahulu'
+      });
+    }
+    next();
+  });
+}
+
 const storage = multer.diskStorage({
   destination: uploadDir,
   filename: (req, file, cb) => {
@@ -37,14 +58,6 @@ const upload = multer({
     files: 80
   }
 });
-
-function requireLogin(req, res, next) {
-  if (!req.session.user) {
-    return res.redirect('/auth/profile?status=success');
-  }
-
-  next();
-}
 
 function toPublicImagePath(imagePath) {
   if (!imagePath) return '';
@@ -96,6 +109,7 @@ router.get('/', requireLogin, async (req, res) => {
       currentPath: '/author',
       comics,
       totals,
+      user: req.session.user,
       toPublicImagePath
     });
   } catch (err) {
@@ -123,6 +137,21 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
         return res.status(404).send('Komik tidak ditemukan atau bukan milik Anda.');
       }
 
+      // 1. UPDATE STATUS KOMIK (Selalu dijalankan jika data status dikirim)
+      if (req.body.status) {
+        comic.status = req.body.status;
+      }
+
+      // =========================================================================
+      // FITUR BARU: Validasi Fleksibel Kondisional (FIXED ✨)
+      // =========================================================================
+      if (files.length === 0) {
+        // Jika user tidak upload file gambar, berarti tujuannya HANYA update status komik
+        await comic.save();
+        return res.redirect('/author');
+      }
+
+      // Jika user upload file gambar, proses penambahan chapter baru dijalankan
       const nextChapterNumber = comic.chapters.length > 0
         ? Math.max(...comic.chapters.map((chapter) => chapter.chapterNumber || 0)) + 1
         : 1;
@@ -140,10 +169,7 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
         return res.status(400).send('Nomor chapter sudah ada pada komik ini.');
       }
 
-      if (files.length === 0) {
-        return res.status(400).send('Tambahkan minimal satu gambar halaman.');
-      }
-
+      // Push chapter baru ke array jika lolos validasi gambar
       comic.chapters.push({
         chapterNumber,
         title: chapterTitle,
@@ -155,12 +181,12 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
       res.redirect('/author');
     } catch (err) {
       removeUploadedFiles(files);
-      console.error('Error add chapter:', err);
+      console.error('Error add chapter / update status:', err);
       if (err.name === 'CastError') {
         return res.status(404).send('Komik tidak ditemukan.');
       }
 
-      res.status(500).send('Terjadi kesalahan saat menambahkan chapter.');
+      res.status(500).send('Terjadi kesalahan saat memproses data.');
     }
   });
 });
