@@ -43,3 +43,11 @@ exports.updateInternalProfile = async (req, res) => {
     await User.findByIdAndUpdate(req.session.user.id, updateData);
     res.redirect('/admin?status=updated');
 };
+
+exports.manageGenres = async (req, res) => {
+    // Karena genre biasanya disimpan dalam array unik di koleksi Comic atau file statis
+    // Kita bisa ambil daftar genre unik dari semua komik yang ada
+    const comics = await Comic.find();
+    const genres = [...new Set(comics.flatMap(c => c.genres))]; 
+    res.render('admin/genres', { user: req.session.user, genres, currentPath: '/admin/genres' });
+};

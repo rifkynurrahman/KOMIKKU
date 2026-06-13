@@ -1,0 +1,41 @@
+<!-- views/admin/users.ejs -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <title>Kelola User - Admin</title>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <%- include('sidebar_partial_admin') %> <!-- Rekomendasi: Gunakan partial untuk sidebar -->
+        <main class="admin-main" style="padding:20px; width:100%">
+            <h2>Daftar Pengguna KomikKu</h2>
+            <table border="1" style="width:100%; margin-top:20px; border-collapse:collapse">
+                <thead>
+                    <tr style="background:#333">
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(u => { %>
+                    <tr>
+                        <td><%= u.username %></td>
+                        <td><%= u.email %></td>
+                        <td><%= u.role %></td>
+                        <td>
+                            <form action="/admin/users/delete/<%= u._id %>" method="POST" onsubmit="return confirm('Hapus user ini?')">
+                                <button type="submit" style="color:red; background:none; border:none; cursor:pointer">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </main>
+    </div>
+</body>
+</html>
