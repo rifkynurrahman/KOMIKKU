@@ -43,10 +43,12 @@ const guestRouter = require('./routes/guest');
 const authRouter = require('./routes/auth');
 const uploadRouter = require('./routes/upload');
 const authorRouter = require('./routes/author');
+const adminRouter = require('./routes/admin');
 app.use('/', guestRouter);
 app.use('/auth', authRouter);
 app.use('/upload', uploadRouter);
 app.use('/author', authorRouter);
+app.use('/admin', adminRouter);
 
 // 404 handler
 app.use((req, res) => {

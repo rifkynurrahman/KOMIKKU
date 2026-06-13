@@ -1,0 +1,55 @@
+<!-- views/admin/dashboard.ejs -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <title>Admin Panel - KomikKu</title>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <!-- Sidebar sesuai gambar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <small>SET MANUAL VIA DATABASE</small>
+                <div class="admin-brand">🛡️ Admin</div>
+            </div>
+            
+            <div class="sidebar-menu">
+                <label>NAVBAR</label>
+                <a href="/"><i class="icon">🏠</i> Beranda</a>
+                <a href="/browse"><i class="icon">🧭</i> Browse</a>
+                <a href="/admin" class="active"><i class="icon">🛡️</i> Admin Panel <span class="badge-khusus">Khusus</span></a>
+                <a href="/profile"><i class="icon">👤</i> Avatar →</a>
+                
+                <label style="margin-top:20px">MANAGEMENT</label>
+                <a href="/admin/users">👥 Kelola User</a>
+                <a href="/admin/comics">📚 Kelola Komik</a>
+                <a href="/author">✍️ Akses Kreator</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="main-header">
+                <h1>Dashboard Statistik</h1>
+            </header>
+
+            <section class="internal-profile">
+                <h3>Kelola Profil Internal Admin</h3>
+                <form action="/admin/profile/internal" method="POST" class="admin-form">
+                    <div class="form-group">
+                        <label>Ganti Email Admin</label>
+                        <input type="email" name="email" value="<%= user.email %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ganti Password Baru</label>
+                        <input type="password" name="password" placeholder="Isi jika ingin ganti">
+                    </div>
+                    <button type="submit" class="btn-gold">Simpan Perubahan</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
