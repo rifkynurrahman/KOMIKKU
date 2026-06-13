@@ -1,418 +1,484 @@
 .upload-page {
-      min-height: 100vh;
-      background: var(--bg);
-      padding: 40px 20px 72px;
-    }
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 40px 20px 72px;
+}
 
-    .upload-shell {
-      width: min(1180px, 100%);
-      margin: 0 auto;
-    }
+.upload-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
 
-    .upload-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
+.upload-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 24px;
+}
 
-    .upload-kicker {
-      color: var(--cyan);
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 1.4px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
+.upload-kicker {
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
 
-    .upload-heading h1 {
-      font-size: 38px;
-      color: var(--off);
-      margin: 0;
-      line-height: 1.1;
-    }
+.upload-heading h1 {
+  font-size: 38px;
+  color: var(--off);
+  margin: 0;
+  line-height: 1.1;
+}
 
-    .upload-heading p {
-      color: var(--gray1);
-      max-width: 560px;
-      line-height: 1.6;
-      margin-top: 10px;
-    }
+.upload-heading p {
+  color: var(--gray1);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-top: 10px;
+}
 
-    .upload-status {
-      min-width: 260px;
-    }
+.upload-status {
+  min-width: 260px;
+}
 
-    .message {
-      display: none;
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.45;
-    }
+.message {
+  display: none;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
 
-    .message.error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #fca5a5;
-    }
+.message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
 
-    .message.success {
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.35);
-      color: #86efac;
-      margin-top: 10px;
-    }
+.message.success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  margin-top: 10px;
+}
 
-    .upload-form {
-      background: rgba(32, 32, 35, 0.72);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-    }
+.upload-form {
+  background: rgba(32, 32, 35, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
 
-    .upload-grid {
-      display: grid;
-      grid-template-columns: minmax(280px, 360px) 1fr;
-      min-height: 620px;
-    }
+.upload-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  min-height: 620px;
+}
 
-    .upload-aside {
-      border-right: 1px solid var(--border);
-      background: rgba(24, 24, 27, 0.62);
-      padding: 28px;
-    }
+.upload-aside {
+  border-right: 1px solid var(--border);
+  background: rgba(24, 24, 27, 0.62);
+  padding: 28px;
+}
 
-    .upload-main {
-      padding: 28px;
-    }
+.upload-main {
+  padding: 28px;
+}
 
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
 
-    .section-title h2 {
-      color: var(--off);
-      font-size: 18px;
-      margin: 0;
-    }
+.section-title h2 {
+  color: var(--off);
+  font-size: 18px;
+  margin: 0;
+}
 
-    .section-title span {
-      color: var(--gray2);
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
+.section-title span {
+  color: var(--gray2);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
 
-    .form-group {
-      margin-bottom: 18px;
-    }
+.form-group {
+  margin-bottom: 18px;
+}
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
+/* Memastikan grid baris melepas element ke atas (tidak ditarik vertikal) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 18px;
+}
 
-    .form-group label {
-      display: block;
-      color: var(--off);
-      font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
+.form-group label {
+  display: block;
+  color: var(--off);
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
 
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%;
-      min-height: 44px;
-      border: 1px solid rgba(82, 82, 91, 0.82);
-      border-radius: 8px;
-      background: rgba(18, 18, 20, 0.82);
-      color: var(--off);
-      font: inherit;
-      font-size: 14px;
-      padding: 11px 12px;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    }
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(82, 82, 91, 0.82);
+  border-radius: 8px;
+  background: rgba(18, 18, 20, 0.82);
+  color: var(--off);
+  font: inherit;
+  font-size: 14px;
+  padding: 11px 12px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
 
-    .form-group textarea {
-      min-height: 134px;
-      resize: vertical;
-      line-height: 1.55;
-    }
+.form-group textarea {
+  min-height: 134px;
+  resize: vertical;
+  line-height: 1.55;
+}
 
-    .form-group select {
-      min-height: 128px;
-    }
+/* ==========================================================================
+   PERBAIKAN UTAMA: DROPDOWN GENRE & STATUS KOMIK
+   ========================================================================== */
 
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--cyan);
-      background: rgba(18, 18, 20, 0.96);
-      box-shadow: 0 0 0 3px rgba(34, 153, 221, 0.14);
-    }
+/* 1. Pengaturan Khusus Multiple Select Genre (Bebas Scrollbar Kaku) */
+.form-group select.clean-multi-select {
+  min-height: 140px !important;
+  overflow-y: auto !important;
+}
 
-    .cover-zone,
-    .pages-zone {
-      position: relative;
-      border: 1px dashed rgba(34, 153, 221, 0.48);
-      border-radius: 8px;
-      background: rgba(34, 153, 221, 0.06);
-      transition: border-color 0.2s, background 0.2s;
-    }
+/* Sembunyikan scrollbar bawaan Chrome, Safari, Opera di Windows & Mobile */
+.form-group select.clean-multi-select::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
 
-    .cover-zone:hover,
-    .cover-zone.active,
-    .pages-zone:hover,
-    .pages-zone.active {
-      border-color: var(--cyan);
-      background: rgba(34, 153, 221, 0.1);
-    }
+/* Sembunyikan scrollbar bawaan Firefox & Edge lama */
+.form-group select.clean-multi-select {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  -webkit-overflow-scrolling: touch !important; /* Membuat geseran touch jari di HP mulus */
+}
 
-    .cover-zone input,
-    .pages-zone input {
-      display: none;
-    }
+.form-group select.clean-multi-select option {
+  padding: 8px 6px !important;
+  border-radius: 4px !important;
+  margin-bottom: 2px !important;
+}
 
-    .cover-label,
-    .pages-label {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--gray1);
-      font-weight: 800;
-    }
+/* 2. Pengaturan Khusus Single Select Dropdown (Status Komik) */
+.form-group select.status-dropdown-clean {
+  min-height: 44px !important;
+  max-height: 44px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  /* Tambahkan icon v panah kecil kustom */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 14px !important;
+  padding-right: 40px !important;
+  cursor: pointer !important;
+}
 
-    .cover-label {
-      min-height: 460px;
-      padding: 22px;
-    }
+/* ========================================================================== */
 
-    .cover-preview {
-      position: absolute;
-      inset: 0;
-      display: none;
-      background: #111;
-      border-radius: 8px;
-      overflow: hidden;
-    }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--cyan);
+  background: rgba(18, 18, 20, 0.96);
+  box-shadow: 0 0 0 3px rgba(34, 153, 221, 0.14);
+}
 
-    .cover-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+.cover-zone,
+.pages-zone {
+  position: relative;
+  border: 1px dashed rgba(34, 153, 221, 0.48);
+  border-radius: 8px;
+  background: rgba(34, 153, 221, 0.06);
+  transition: border-color 0.2s, background 0.2s;
+}
 
-    .cover-meta {
-      position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      background: rgba(0, 0, 0, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 10px 12px;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 800;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+.cover-zone:hover,
+.cover-zone.active,
+.pages-zone:hover,
+.pages-zone.active {
+  border-color: var(--cyan);
+  background: rgba(34, 153, 221, 0.1);
+}
 
-    .cover-zone.has-file .cover-preview {
-      display: block;
-    }
+.cover-zone input,
+.pages-zone input {
+  display: none;
+}
 
-    .hint {
-      color: var(--gray2);
-      font-size: 12px;
-      line-height: 1.55;
-      margin-top: 10px;
-    }
+.cover-label,
+.pages-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--gray1);
+  font-weight: 800;
+}
 
-    .chapter-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      border-top: 1px solid var(--border);
-      padding-top: 22px;
-      margin-top: 22px;
-      margin-bottom: 16px;
-    }
+.cover-label {
+  min-height: 460px;
+  padding: 22px;
+}
 
-    .chapter-count {
-      color: var(--gray1);
-      font-size: 13px;
-      font-weight: 800;
-    }
+.cover-preview {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-    .chapter-list {
-      display: grid;
-      gap: 14px;
-    }
+.cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
-    .chapter-item {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: rgba(24, 24, 27, 0.48);
-      padding: 16px;
-    }
+.cover-meta {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    .chapter-head {
-      display: grid;
-      grid-template-columns: 120px 1fr auto;
-      gap: 12px;
-      align-items: end;
-      margin-bottom: 14px;
-    }
+.cover-zone.has-file .cover-preview {
+  display: block;
+}
 
-    .pages-label {
-      min-height: 96px;
-      padding: 18px;
-    }
+.hint {
+  color: var(--gray2);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-top: 10px;
+}
 
-    .pages-preview {
-      margin-top: 10px;
-      color: var(--gray1);
-      font-size: 12px;
-      line-height: 1.7;
-    }
+.chapter-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 22px;
+  margin-top: 22px;
+  margin-bottom: 16px;
+}
 
-    .pages-preview strong {
-      color: var(--cyan);
-    }
+.chapter-count {
+  color: var(--gray1);
+  font-size: 13px;
+  font-weight: 800;
+}
 
-    .button {
-      border: 0;
-      border-radius: 8px;
-      min-height: 42px;
-      padding: 0 18px;
-      cursor: pointer;
-      font: inherit;
-      font-size: 14px;
-      font-weight: 900;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
-    }
+.chapter-list {
+  display: grid;
+  gap: 14px;
+}
 
-    .button-primary {
-      background: var(--cyan);
-      color: #fff;
-    }
+.chapter-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(24, 24, 27, 0.48);
+  padding: 16px;
+}
 
-    .button-primary:hover {
-      background: var(--cyan2);
-    }
+.chapter-head {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+}
 
-    .button-outline {
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--off);
-    }
+.pages-label {
+  min-height: 96px;
+  padding: 18px;
+}
 
-    .button-outline:hover {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      background: rgba(34, 153, 221, 0.08);
-    }
+.pages-preview {
+  margin-top: 10px;
+  color: var(--gray1);
+  font-size: 12px;
+  line-height: 1.7;
+}
 
-    .button-danger {
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      background: rgba(239, 68, 68, 0.08);
-      color: #fca5a5;
-      min-width: 42px;
-      padding: 0 12px;
-    }
+.pages-preview strong {
+  color: var(--cyan);
+}
 
-    .button-danger:hover {
-      background: rgba(239, 68, 68, 0.14);
-      border-color: rgba(239, 68, 68, 0.65);
-    }
+.button {
+  border: 0;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
 
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      border-top: 1px solid var(--border);
-      padding-top: 22px;
-      margin-top: 24px;
-    }
+.button-primary {
+  background: var(--cyan);
+  color: #fff;
+}
 
-    .submit-button {
-      min-width: 180px;
-    }
+.button-primary:hover {
+  background: var(--cyan2);
+}
 
-    .submit-button[disabled] {
-      opacity: 0.65;
-      cursor: wait;
-    }
+.button-outline {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--off);
+}
 
-    @media (max-width: 920px) {
-      .upload-heading {
-        display: block;
-      }
+.button-outline:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(34, 153, 221, 0.08);
+}
 
-      .upload-status {
-        min-width: 0;
-        margin-top: 16px;
-      }
+.button-danger {
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  min-width: 42px;
+  padding: 0 12px;
+}
 
-      .upload-grid {
-        grid-template-columns: 1fr;
-      }
+.button-danger:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.65);
+}
 
-      .upload-aside {
-        border-right: 0;
-        border-bottom: 1px solid var(--border);
-      }
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 22px;
+  margin-top: 24px;
+}
 
-      .cover-label {
-        min-height: 360px;
-      }
-    }
+.submit-button {
+  min-width: 180px;
+}
 
-    @media (max-width: 640px) {
-      .upload-page {
-        padding: 28px 14px 56px;
-      }
+.submit-button[disabled] {
+  opacity: 0.65;
+  cursor: wait;
+}
 
-      .upload-aside,
-      .upload-main {
-        padding: 18px;
-      }
+/* ==========================================================================
+   MEDIA QUERIES RESPONSIVE
+   ========================================================================== */
 
-      .form-row,
-      .chapter-head {
-        grid-template-columns: 1fr;
-      }
+@media (max-width: 920px) {
+  .upload-heading {
+    display: block;
+  }
 
-      .form-actions,
-      .chapter-toolbar {
-        align-items: stretch;
-        flex-direction: column;
-      }
+  .upload-status {
+    min-width: 0;
+    margin-top: 16px;
+  }
 
-      .button {
-        width: 100%;
-      }
-    }
+  .upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-aside {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cover-label {
+    min-height: 360px;
+  }
+}
+
+/* SATU MEDIA QUERY REKONSILIASI UNTUK MOBILE (MAKSIMAL 640PX) */
+@media (max-width: 640px) {
+  .upload-page {
+    padding: 28px 14px 56px;
+  }
+
+  .upload-aside,
+  .upload-main {
+    padding: 18px;
+  }
+
+  /* Membuat baris input menjadi satu kolom vertikal di mobile */
+  .form-row,
+  .chapter-head {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* PENYESUAIAN MOBILE DROPDOWN GENRE */
+  .form-group select.clean-multi-select {
+    min-height: 150px !important; /* Ruang tinggi box pas & lega di layar sentuh */
+    font-size: 15px !important;    /* Ukuran teks opsi sedikit naik agar mudah dibaca */
+  }
+
+  /* Target sentuhan jari pada daftar genre diperluas agar tidak salah tekan */
+  .form-group select.clean-multi-select option {
+    padding: 10px 8px !important;
+  }
+
+  .form-actions,
+  .chapter-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

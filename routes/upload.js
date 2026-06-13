@@ -11,7 +11,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// MIDDLEWARE: Ditambahkan session reload agar status login sinkron & aman (FIXED ✨)
+// MIDDLEWARE: Memastikan status login sinkron & aman
 function requireLogin(req, res, next) {
   if (!req.session) {
     if (req.method === 'GET') return res.redirect('/auth/login');
@@ -96,16 +96,25 @@ router.post('/', requireLogin, (req, res) => {
     }
 
     try {
-      // 1. TAMBAHKAN field 'status' untuk ditangkap dari request body form (FIXED ✨)
       const { title, description, author, genres, status } = req.body;
 
-      if (!title || !description || !author || !genres) {
+      // ==========================================================================
+      // PENYESUAIAN UTAMA: NORMALISASI DATA GENRE (ANTI-BUG SINGLE DATA)
+      // ==========================================================================
+      // Mengubah string tunggal menjadi array, atau buat array kosong jika tidak ada yang dipilih
+      const genreList = genres 
+        ? (Array.isArray(genres) ? genres : [genres]) 
+        : [];
+
+      // Validasi kelengkapan data form utama
+      if (!title || !description || !author || genreList.length === 0) {
         removeUploadedFiles(files);
         return res.status(400).json({
           success: false,
-          error: 'Semua field komik harus diisi'
+          error: 'Semua field komik harus diisi, termasuk minimal memilih satu genre'
         });
       }
+      // ==========================================================================
 
       const chapterKeys = Array.isArray(req.body.chapterKeys)
         ? req.body.chapterKeys
@@ -141,15 +150,13 @@ router.post('/', requireLogin, (req, res) => {
         });
       }
 
-      const genreList = Array.isArray(genres) ? genres : [genres];
-
-      // 2. Masukkan field status ke dalam inisialisasi dokumen Mongoose (FIXED ✨)
+      // Simpan dokumen baru ke database Mongoose
       const newComic = new Comic({
         title,
         author,
         synopsis: description,
-        genres: genreList.filter(Boolean),
-        status: status || 'Ongoing', // Menyimpan status sesuai pilihan author (Ongoing / Completed)
+        genres: genreList.filter(Boolean), // Array terfilter bebas dari nilai null/undefined
+        status: status || 'Ongoing',       // Default ke 'Ongoing' jika input status kosong
         coverImage: `foto/${coverFile.filename}`,
         uploadedBy: req.session.user.id,
         chapters,
