@@ -19,8 +19,20 @@
 .detail-title{font-family:'Bangers',cursive;font-size:52px;letter-spacing:2px;line-height:1;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.8)}
 .detail-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .detail-tag{background:rgba(34,153,221,0.15);border:1px solid rgba(34,153,221,0.4);color:#2299DD;padding:3px 12px;border-radius:999px;font-size:11px;font-weight:700}
-.detail-stats{display:flex;gap:28px;font-size:13px;color:#a3a3a3}
+.detail-stats{display:flex;gap:28px;font-size:13px;color:#a3a3a3;align-items:center}
 .detail-stat span{color:#f5f5f5;font-weight:700}
+
+/* Gaya Link Kreator Baru */
+.creator-link {
+  color: #2299DD;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+.creator-link:hover {
+  color: #1A7FB8;
+  text-decoration: underline;
+}
 
 /* LAYOUT UTAMA */
 .detail-container-wrapper {
@@ -94,11 +106,54 @@
     gap: 16px;
   }
 }
+
+/* --- GAYA BARU: TOAST NOTIFICATION ELEGAN --- */
+#toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.toast-popup {
+  background: #1e1e24;
+  color: #ffffff;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  border-left: 5px solid #2299DD;
+  min-width: 280px;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+             toastFadeOut 0.3s ease 3s forwards;
+}
+.toast-success { border-left-color: #10b981; }
+.toast-warning { border-left-color: #f59e0b; }
+.toast-error { border-left-color: #ef4444; }
+
+@keyframes toastSlideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toastFadeOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(30px); }
+}
 </style>
 </head>
 <body>
 
 <%- include('partials/navbar', { currentPath: '' }) %>
+
+<div id="toast-container"></div>
 
 <div class="detail-hero">
   <div class="detail-hero-inner">
@@ -116,9 +171,25 @@
       </div>
       <div class="detail-stats">
         <div>👁 <span><%= formatViews(comic.views) %></span> Views</div>
-        <div>⭐ <span><%= comic.rating || '0.0' %></span> Rating</div>
+        <div>⭐ <span id="rating-value-display"><%= comic.rating || '0.0' %></span> Rating</div>
         <div>📖 <span><%= comic.chapters ? comic.chapters.length : 0 %></span> Chapter</div>
-        <div>✍️ <span><%= comic.author %></span></div>
+        
+        <div>
+          ✍️ 
+          <% if (comic.uploadedBy && (comic.uploadedBy._id || typeof comic.uploadedBy === 'string')) { %>
+            <% const creatorId = comic.uploadedBy._id || comic.uploadedBy; %>
+            
+            <% const displayName = comic.uploadedBy.firstName 
+               ? (comic.uploadedBy.firstName + ' ' + (comic.uploadedBy.lastName || '')) 
+               : (comic.uploadedBy.username || comic.author || 'Kreator'); %>
+
+            <a href="/creator/<%= creatorId %>" class="creator-link">
+              <%= displayName %>
+            </a>
+          <% } else { %>
+            <span><%= comic.author || 'Anonim' %></span>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>
@@ -166,26 +237,28 @@
             <div style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:6px;color:#fff">Menu Pembaca</div>
             <p style="color:#a3a3a3;font-size:12px;margin-bottom:16px">Halo <strong><%= user.username %></strong>, kelola komik favoritmu disini.</p>
             
-            <a href="/komik/<%= comic._id %>/bookmark" class="btn btn-primary" style="display:block;text-align:center;padding:12px;text-decoration:none;margin-bottom:14px;background:#10b981;border-color:#10b981">📌 Tambah Ke Bookmark</a>
+            <button id="ajax-bookmark-btn" data-url="/komik/<%= comic._id %>/bookmark" class="btn btn-primary" style="display:block;width:100%;text-align:center;padding:12px;text-decoration:none;margin-bottom:14px;background:#10b981;border-color:#10b981;cursor:pointer;font-family:inherit;font-weight:bold;">
+              📌 Tambah Ke Bookmark
+            </button>
             
-            <form action="/komik/<%= comic._id %>/rate" method="POST" style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px">
+            <div id="ajax-rating-area" style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px">
               <label style="font-size:12px;color:#a3a3a3;display:block;margin-bottom:6px">Beri Rating Komik:</label>
               <div style="display:flex;gap:6px">
-                <select name="score" style="background:#27272a;color:#fff;border:1px solid rgba(63,63,70,0.5);padding:8px;border-radius:6px;flex:1">
+                <select id="rating-score-select" style="background:#27272a;color:#fff;border:1px solid rgba(63,63,70,0.5);padding:8px;border-radius:6px;flex:1;cursor:pointer">
                   <option value="5">⭐⭐⭐⭐⭐ (5)</option>
                   <option value="4">⭐⭐⭐⭐ (4)</option>
                   <option value="3">⭐⭐⭐ (3)</option>
                   <option value="2">⭐⭐ (2)</option>
                   <option value="1">⭐ (1)</option>
                 </select>
-                <button type="submit" class="btn btn-primary" style="padding:0 14px">Kirim</button>
+                <button type="button" id="ajax-rating-submit-btn" class="btn btn-primary" style="padding:0 14px;cursor:pointer">Kirim</button>
               </div>
-            </form>
+            </div>
           </div>
         <% } else { %>
           <div class="guest-lock" style="margin-bottom:20px">
             <div style="font-size:28px;margin-bottom:10px">🔖</div>
-            <p>Login untuk bookmark, komentar, dan rating komik ini!</p>
+            <p>Login untuk bookmark, komentar, and rating komik ini!</p>
             <a href="/login" class="btn btn-primary" style="display:block;text-align:center;padding:12px;text-decoration:none">Masuk Sekarang</a>
             <div style="margin-top:10px;text-align:center;font-size:12px;color:#737373">
               Belum punya akun? <a href="/register" style="color:#2299DD;font-weight:700">Daftar gratis</a>
@@ -217,7 +290,9 @@
       </div>
     </div>
 
-  </div> <div class="comment-box">
+  </div> 
+  
+  <div class="comment-box">
     <div style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:16px;color:#2299DD">💬 Komentar Pembaca</div>
     
     <% if (typeof user !== 'undefined' && user) { %>
@@ -245,10 +320,89 @@
     </div>
   </div>
 
-</div> <%- include('partials/footer') %>
+</div> 
+
+<%- include('partials/footer') %>
 <script src="/js/main.js"></script>
 
 <script>
+// --- GLOBAL HELPER: SHOW TOAST ---
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast-popup toast-${type}`;
+  
+  let icon = 'ℹ️ ';
+  if(type === 'success') icon = '✅ ';
+  if(type === 'warning') icon = '⚠️ ';
+  if(type === 'error') icon = '❌ ';
+
+  toast.innerText = icon + message;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3300);
+}
+
+// --- LOGIC AJAX: BOOKMARK ---
+const bookmarkBtn = document.getElementById('ajax-bookmark-btn');
+if (bookmarkBtn) {
+  bookmarkBtn.addEventListener('click', async function() {
+    const url = this.getAttribute('data-url');
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showToast(data.message || "Komik berhasil disimpan ke bookmark!", "success");
+      } else {
+        showToast(data.message || "Komik sudah ada di daftar bookmark.", "warning");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi masalah saat menghubungi server.", "error");
+    }
+  });
+}
+
+// --- LOGIC AJAX: RATING (FIXED ELEGAN) ---
+const ratingSubmitBtn = document.getElementById('ajax-rating-submit-btn');
+if (ratingSubmitBtn) {
+  ratingSubmitBtn.addEventListener('click', async function() {
+    const scoreValue = document.getElementById('rating-score-select').value;
+    
+    try {
+      // 🛠️ PERBAIKAN 2: Menggunakan route POST dinamis yang tepat sesuai struktur id komik
+      const response = await fetch('/komik/<%= comic._id %>/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: scoreValue })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showToast(data.message || "Terima kasih atas rating yang kamu berikan! ⭐", "success");
+        if (data.newRating || data.rating) {
+          document.getElementById('rating-value-display').innerText = data.newRating || data.rating;
+        }
+      } else {
+        showToast(data.message || "Gagal mengirim rating.", "warning");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan sistem saat mengirim rating.", "error");
+    }
+  });
+}
+
+// --- LOGIC REALTIME: KOMENTAR ---
 const commentForm = document.getElementById('realtime-comment-form');
 if (commentForm) {
   commentForm.addEventListener('submit', async (e) => {
@@ -282,12 +436,13 @@ if (commentForm) {
         
         container.insertAdjacentHTML('afterbegin', newCommentHTML);
         textInput.value = '';
+        showToast("Komentar kamu berhasil diterbitkan!", "success");
       } else {
-        alert(data.message || 'Gagal mengirim komentar');
+        showToast(data.message || 'Gagal mengirim komentar', "warning");
       }
     } catch (err) {
       console.error('Error saat kirim komentar:', err);
-      alert('Gagal terhubung ke server');
+      showToast('Gagal terhubung ke server', "error");
     }
   });
 }

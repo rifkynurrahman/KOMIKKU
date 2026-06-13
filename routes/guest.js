@@ -17,22 +17,14 @@ const formatViews = (num) => {
   return num.toString();
 };
 
-// GET / — Beranda (UPDATE: REAL-TIME TRENDING + TERBARU)
+// GET / — Beranda (REAL-TIME TRENDING + TERBARU)
 router.get('/', async (req, res) => {
   try {
-    // 1. Ambil 12 komik trending berdasarkan views terbanyak
     const trending = await Comic.find().sort({ views: -1 }).limit(12);
-
-    // [PERBAIKAN] 2. Ambil 6 komik terbaru berdasarkan input waktu (Biar komik baru lgsg muncul)
     const terbaru = await Comic.find().sort({ createdAt: -1 }).limit(6);
-
-    // 3. Hitung total komik riil di database
     const totalKomik = await Comic.countDocuments({});
-
-    // 4. Hitung total akun pembaca yang terdaftar di database
     const totalPembaca = await User.countDocuments({});
 
-    // 5. Hitung total akumulasi views dari seluruh komik yang ada (Menggunakan Aggregation)
     const viewsAggregate = await Comic.aggregate([
       {
         $group: {
@@ -42,15 +34,12 @@ router.get('/', async (req, res) => {
       }
     ]);
     const totalViews = viewsAggregate.length > 0 ? viewsAggregate[0].totalViews : 0;
-
-    // 6. Hitung total kreator
     const totalKreator = await Comic.distinct('author').then(authors => authors.length) || 12; 
 
-    // Render ke index.ejs sambil mengirimkan variabel statistik & komik terbaru
     res.render('index', {
       currentPath: '/',
       trending,
-      terbaru, // <-- Variabel baru dikirim ke index.ejs
+      terbaru, 
       formatViews,
       user: req.session.user,
       stats: {
@@ -75,7 +64,6 @@ router.get('/browse', async (req, res) => {
     if (genre) query.genres = genre; 
     if (q) query.title = { $regex: q, $options: 'i' };
 
-    // Ditambahkan sort agar komik terbaru di menu browse berada di posisi paling atas
     const filteredComics = await Comic.find(query).sort({ createdAt: -1 });
 
     res.render('browse', {
@@ -93,14 +81,16 @@ router.get('/browse', async (req, res) => {
   }
 });
 
-// GET /komik/:id — Detail komik
+// GET /komik/:id — Detail komik (FIXED WARNING DEPRECATION & POPULATE)
 router.get('/komik/:id', async (req, res) => {
   try {
+    // 🛠️ PERBAIKAN: Mengganti { new: true } menjadi { returnDocument: 'after' } agar terminal bersih dari warning
     const comicData = await Comic.findByIdAndUpdate(
       req.params.id,
       { $inc: { views: 1 } },
-      { new: true }
-    );
+      { returnDocument: 'after' } 
+    ).populate('uploadedBy', 'username firstName lastName avatar');
+
     if (!comicData) return res.status(404).send('Komik tidak ditemukan');
 
     const comic = comicData.toObject();
@@ -139,7 +129,6 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
     if (!chData) return res.status(404).send('Chapter tidak ditemukan');
 
     if (req.session.user) {
-      const User = require('../models/User');
       const user = await User.findById(req.session.user.id);
       if (user) {
         const existingEntry = user.readHistory.find(h => 
@@ -184,29 +173,18 @@ router.get('/komik/:id/baca/:chapter', async (req, res) => {
   }
 });
 
-// Rute Login & Register — redirect ke auth routes
-router.get('/login', (req, res) => {
-  res.redirect('/auth/login');
-});
+// Rute Pengalihan Autentikasi
+router.get('/login', (req, res) => res.redirect('/auth/login'));
+router.get('/register', (req, res) => res.redirect('/auth/register'));
+router.get('/profile', (req, res) => res.redirect('/auth/profile'));
+router.get('/logout', (req, res) => res.redirect('/auth/logout'));
 
-router.get('/register', (req, res) => {
-  res.redirect('/auth/register');
-});
-
-// Redirect profile & logout ke auth routes
-router.get('/profile', (req, res) => {
-  res.redirect('/auth/profile');
-});
-
-router.get('/logout', (req, res) => {
-  res.redirect('/auth/logout');
-});
 
 // =======================================================
-// FITUR INTERAKSI USER (KOMENTAR, RATING, BOOKMARK)
+// FITUR INTERAKSI USER (MENGGUNAKAN API JSON RESPONSE)
 // =======================================================
 
-// 1. RUTE KOMENTAR
+// 1. RUTE KOMENTAR (Sudah OK)
 router.post('/komik/:id/komentar', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
@@ -236,18 +214,17 @@ router.post('/komik/:id/komentar', async (req, res) => {
     await comic.save();
 
     return res.json({ success: true, comment: newComment });
-
   } catch (err) {
     console.error('Error saat menyimpan komentar:', err);
     return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
   }
 });
 
-// 2. RUTE RATING (POST /komik/:id/rate)
+// 2. RUTE RATING (DIUBAH KE JSON RESPONSIVE)
 router.post('/komik/:id/rate', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
-      return res.send('<script>alert("Harus login terlebih dahulu!"); window.history.back();</script>');
+      return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu!' });
     }
 
     const comicId = req.params.id;
@@ -255,52 +232,111 @@ router.post('/komik/:id/rate', async (req, res) => {
 
     const comic = await Comic.findById(comicId);
     if (!comic) {
-      return res.send('<script>alert("Komik tidak ditemukan!"); window.history.back();</script>');
+      return res.status(404).json({ success: false, message: 'Komik tidak ditemukan!' });
     }
 
+    // Update rating komik
     comic.rating = parseFloat(score).toFixed(1);
     await comic.save();
 
-    return res.send('<script>alert("Terima kasih atas ratingnya!"); window.location.href="/komik/' + comicId + '";</script>');
-
+    // Kirim response data sukses ke client fetch
+    return res.json({ 
+      success: true, 
+      message: 'Terima kasih atas rating yang kamu berikan! ⭐', 
+      newRating: comic.rating 
+    });
   } catch (err) {
     console.error('Error saat rating:', err);
-    return res.send('<script>alert("Gagal memberi rating!"); window.history.back();</script>');
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan internal server saat menyimpan rating.' });
   }
 });
 
-// 3. RUTE BOOKMARK (GET /komik/:id/bookmark)
-router.get('/komik/:id/bookmark', async (req, res) => {
+// 3. RUTE BOOKMARK (DIUBAH MENJADI POST & MENGGUNAKAN API RESPONSE)
+router.post('/komik/:id/bookmark', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
-      return res.send('<script>alert("Harus login terlebih dahulu!"); window.history.back();</script>');
+      return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu!' });
     }
 
     const comicId = req.params.id;
-    const User = require('../models/User'); 
-
     const userId = req.session.user.id || req.session.user._id;
     const userDb = await User.findById(userId);
     
     if (!userDb) {
-      return res.send('<script>alert("User tidak ditemukan di database!"); window.history.back();</script>');
+      return res.status(404).json({ success: false, message: 'User tidak ditemukan di database!' });
     }
 
     if (!userDb.bookmarks) userDb.bookmarks = [];
 
+    // Cek duplikasi bookmark
     if (userDb.bookmarks.includes(comicId)) {
-      return res.send('<script>alert("Komik ini sudah ada di daftar bookmark kamu!"); window.history.back();</script>');
+      return res.status(400).json({ success: false, message: 'Komik ini sudah ada di daftar bookmark kamu!' });
     }
 
     userDb.bookmarks.push(comicId);
     await userDb.save();
 
-    return res.send('<script>alert("Berhasil menambahkan ke Bookmark!"); window.location.href="/komik/' + comicId + '";</script>');
-
+    return res.json({ success: true, message: 'Berhasil ditambahkan ke daftar Bookmark! 📌' });
   } catch (err) {
     console.error('Error saat bookmark:', err);
-    return res.send('<script>alert("Gagal menambahkan bookmark! Pastikan field `bookmarks` bertipe array di model User kalian."); window.history.back();</script>');
+    return res.status(500).json({ success: false, message: 'Gagal memproses penambahan data ke bookmark.' });
   }
+});
+
+// DETAIL KREATOR / PUBLIC VIEW
+router.get('/creator/:id', async (req, res) => {
+    try {
+        const creatorId = req.params.id;
+        
+        const creator = await User.findById(creatorId);
+        const comics = await Comic.find({ author: creatorId });
+
+        let totalViews = 0;
+        let totalChapters = 0;
+        let topComicTitle = '-';
+        let topComicViews = 0;
+
+        comics.forEach(comic => {
+            const views = comic.views || 0;
+            totalViews += views;
+            totalChapters += (comic.chapters ? comic.chapters.length : 0);
+
+            if (views >= topComicViews) {
+                topComicViews = views;
+                topComicTitle = comic.title;
+            }
+        });
+
+        const averageViews = comics.length > 0 ? Math.round(totalViews / comics.length) : 0;
+
+        const totals = {
+            comics: comics.length,
+            chapters: totalChapters,
+            views: totalViews,
+            averageViews: averageViews,
+            topComicTitle: topComicTitle,
+            topComicViews: topComicViews
+        };
+
+        const localFormatViews = (num) => {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'RB';
+            return num.toString();
+        };
+
+        res.render('author', {
+            creator: creator,
+            comics: comics,
+            totals: totals,          
+            formatViews: localFormatViews, 
+            isPublicView: true,       
+            user: req.session.user || null // Diselaraskan menggunakan req.session.user demi konsistensi data
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server Error");
+    }
 });
 
 module.exports = router;

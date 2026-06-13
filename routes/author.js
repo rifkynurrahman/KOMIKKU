@@ -11,7 +11,19 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// MIDDLEWARE: Proteksi login stabil memakai reload session (FIXED ✨)
+// Helper format angka views agar ringkas (Misal: 1.2JT, 45RB)
+const formatViews = (num) => {
+  if (!num) return '0';
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace('.0', '') + 'JT';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace('.0', '') + 'RB';
+  }
+  return num.toString();
+};
+
+// MIDDLEWARE: Proteksi login stabil memakai reload session
 function requireLogin(req, res, next) {
   if (!req.session) {
     if (req.method === 'GET') return res.redirect('/auth/login');
@@ -85,6 +97,7 @@ function removeUploadedFiles(files = []) {
   });
 }
 
+// GET /author — Dashboard Kreator Pribadi
 router.get('/', requireLogin, async (req, res) => {
   try {
     const comics = await Comic.find({ uploadedBy: req.session.user.id })
@@ -105,12 +118,16 @@ router.get('/', requireLogin, async (req, res) => {
     totals.topComicTitle = topComic ? topComic.title : '-';
     totals.topComicViews = topComic ? topComic.views || 0 : 0;
 
+    // FIX: Sekarang formatViews & isPublicView ikut dilempar agar view engine tidak crash
     res.render('author', {
       currentPath: '/author',
       comics,
       totals,
       user: req.session.user,
-      toPublicImagePath
+      creator: req.session.user, // Menyelaraskan object creator untuk dashboard mandiri
+      toPublicImagePath,
+      formatViews,               // <-- INI DIA YANG MEMBUAT ERROR APPLIKASIMU HILANG
+      isPublicView: false        // Menandakan bahwa ini adalah dashboard milik sendiri
     });
   } catch (err) {
     console.error('Error author dashboard:', err);
@@ -137,21 +154,15 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
         return res.status(404).send('Komik tidak ditemukan atau bukan milik Anda.');
       }
 
-      // 1. UPDATE STATUS KOMIK (Selalu dijalankan jika data status dikirim)
       if (req.body.status) {
         comic.status = req.body.status;
       }
 
-      // =========================================================================
-      // FITUR BARU: Validasi Fleksibel Kondisional (FIXED ✨)
-      // =========================================================================
       if (files.length === 0) {
-        // Jika user tidak upload file gambar, berarti tujuannya HANYA update status komik
         await comic.save();
         return res.redirect('/author');
       }
 
-      // Jika user upload file gambar, proses penambahan chapter baru dijalankan
       const nextChapterNumber = comic.chapters.length > 0
         ? Math.max(...comic.chapters.map((chapter) => chapter.chapterNumber || 0)) + 1
         : 1;
@@ -169,7 +180,6 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
         return res.status(400).send('Nomor chapter sudah ada pada komik ini.');
       }
 
-      // Push chapter baru ke array jika lolos validasi gambar
       comic.chapters.push({
         chapterNumber,
         title: chapterTitle,
