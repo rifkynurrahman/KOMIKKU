@@ -67,7 +67,7 @@ exports.getCreatorAccess = async (req, res) => {
     }
 };
 
-exports.makeCreator = async (req, res) => {
+exports.promoteToCreator = async (req, res) => {
     try {
         const { id } = req.params;
         // Update role user menjadi 'creator'

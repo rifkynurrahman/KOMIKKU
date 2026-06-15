@@ -1,17 +1,17 @@
 <%
-  // Inisialisasi variabel agar tidak error jika data belum dikirim dari server
   const currentPath = locals.currentPath || '';
   const user = locals.user || null;
 %>
 <nav>
   <a class="logo" href="/">✦ <span>KOMIK</span>KU</a>
-
+  
   <div class="nav-links">
     <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Beranda</a>
     <a href="/browse" class="<%= currentPath === '/browse' ? 'active' : '' %>">Browse</a>
     
+    <!-- FITUR: Tombol Kembali ke Admin (Hanya muncul jika admin sedang di beranda/profil) -->
     <% if (user && user.role === 'admin') { %>
-      <a href="/admin" style="color: #f59e0b; font-weight: 900; border: 1px solid rgba(245, 158, 11, 0.3); padding: 5px 12px; border-radius: 8px; background: rgba(245, 158, 11, 0.05);">🛡️ PANEL ADMIN</a>
+      <a href="/admin" style="color: #f59e0b; font-weight: 900;">🛡️ PANEL ADMIN</a>
     <% } %>
 
     <% if (user) { %>
@@ -22,22 +22,7 @@
   <div class="nav-btns">
     <% if (user) { %>
       <div style="position: relative; display: inline-block;">
-        <button id="profileBtn" style="
-          background: none;
-          border: 1px solid rgba(34, 153, 221, 0.5);
-          color: #2299DD;
-          font-size: 20px;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-          padding: 0;
-          overflow: hidden;
-        " title="<%= user.firstName %> <%= user.lastName %>">
+        <button id="profileBtn" style="background: none; border: 1px solid rgba(34, 153, 221, 0.5); color: #2299DD; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden;" title="<%= user.firstName %>">
           <% if (user.avatar) { %>
             <img src="<%= user.avatar %>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
           <% } else { %>
@@ -45,41 +30,13 @@
           <% } %>
         </button>
         
-        <div id="profileMenu" style="
-          position: absolute;
-          top: 55px;
-          right: 0;
-          background: #1a1a1d;
-          border: 1px solid rgba(34, 153, 221, 0.3);
-          border-radius: 12px;
-          min-width: 220px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-          display: none;
-          z-index: 1000;
-          overflow: hidden;
-        ">
-          <div style="padding: 16px; border-bottom: 1px solid rgba(34, 153, 221, 0.2); background: rgba(34, 153, 221, 0.05);">
-            <div style="font-size: 14px; font-weight: 700; color: #f5f5f5;"><%= user.firstName %> <%= user.lastName %></div>
-            <div style="font-size: 11px; color: #a3a3a3; margin-top: 2px;"><%= user.email %></div>
-            <div style="display: inline-block; margin-top: 8px; font-size: 10px; padding: 2px 8px; background: #2299DD; color: white; border-radius: 4px; text-transform: uppercase; font-weight: 900;">
-                <%= user.role %>
-            </div>
+        <div id="profileMenu" style="position: absolute; top: 50px; right: 0; background: #1a1a1d; border: 1px solid rgba(34, 153, 221, 0.3); border-radius: 12px; min-width: 200px; display: none; z-index: 1000; overflow: hidden;">
+          <div style="padding: 16px; border-bottom: 1px solid rgba(34, 153, 221, 0.2);">
+            <div style="font-size: 14px; font-weight: 700; color: #f5f5f5;"><%= user.firstName %></div>
+            <div style="font-size: 12px; color: #a3a3a3;"><%= user.email %></div>
           </div>
-          
-          <!-- Link Menu -->
-          <a href="/profile" style="display: block; padding: 12px 16px; color: #f5f5f5; text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(34, 153, 221, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
-            📋 Profil Saya
-          </a>
-          
-          <% if (user.role === 'creator' || user.role === 'admin') { %>
-            <a href="/author" style="display: block; padding: 12px 16px; color: #f5f5f5; text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(34, 153, 221, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
-              ✍️ Studio Kreator
-            </a>
-          <% } %>
-
-          <a href="/auth/logout" style="display: block; padding: 12px 16px; color: #ef4444; text-decoration: none; font-size: 14px; font-weight: 700; border-top: 1px solid rgba(239, 68, 68, 0.1); transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.05)'" onmouseout="this.style.backgroundColor='transparent'">
-            🚪 Keluar
-          </a>
+          <a href="/profile" style="display: block; padding: 12px 16px; color: #a3a3a3; text-decoration: none; font-size: 14px;">📋 Profile</a>
+          <a href="/logout" style="display: block; padding: 12px 16px; color: #ef4444; text-decoration: none; font-size: 14px;">🚪 Logout</a>
         </div>
       </div>
     <% } else { %>
@@ -90,21 +47,14 @@
 </nav>
 
 <script>
-/**
- * Logika Interaksi Dropdown Profil
- */
 const profileBtn = document.getElementById('profileBtn');
 const profileMenu = document.getElementById('profileMenu');
-
-if (profileBtn && profileMenu) {
-  profileBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isHidden = profileMenu.style.display === 'none' || profileMenu.style.display === '';
-    profileMenu.style.display = isHidden ? 'block' : 'none';
+if (profileBtn) {
+  profileBtn.addEventListener('click', () => {
+    profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
   });
-  
   document.addEventListener('click', (e) => {
-    if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+    if (!e.target.closest('#profileBtn') && !e.target.closest('#profileMenu')) {
       profileMenu.style.display = 'none';
     }
   });

@@ -1,30 +1,28 @@
-// routes/admin.js
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const isAdmin = require('../middleware/isAdmin');
 
-// Semua rute di bawah ini wajib Admin
+// Middleware untuk memastikan hanya admin yang bisa akses
 router.use(isAdmin);
 
-// Dashboard & Profil
+// 1. Dashboard
 router.get('/', adminController.getDashboard);
+
+// 2. Profil Internal
 router.post('/profile/internal', adminController.updateInternalProfile);
 
-// Manajemen User
+// 3. Manajemen User
 router.get('/users', adminController.manageUsers);
 router.post('/users/delete/:id', adminController.deleteUser);
 
-// Manajemen Komik & Genre
+// 4. Manajemen Komik & Genre
 router.get('/comics', adminController.manageComics);
 router.post('/comics/delete/:id', adminController.deleteComic);
 router.get('/genres', adminController.manageGenres);
 
-/** 
- * TAMBAHAN: RUTE AKSES KREATOR 
- * Digunakan untuk melihat daftar user dan mengubah role mereka menjadi creator
- */
-router.get('/creators', adminController.getCreatorAccess); // Menampilkan halaman Kelola Kreator
-router.post('/creators/promote/:id', adminController.promoteToCreator); // Aksi tombol "Jadikan Kreator"
+// 5. Akses Kreator (PASTIKAN NAMA INI SAMA DENGAN CONTROLLER)
+router.get('/creators', adminController.getCreatorAccess); 
+router.post('/creators/promote/:id', adminController.promoteToCreator);
 
 module.exports = router;
