@@ -6,7 +6,8 @@ const bcrypt = require('bcrypt');
 exports.getDashboard = async (req, res) => {
     try {
         const totalUser = await User.countDocuments();
-        const totalComic = await User.countDocuments(); // Contoh hitung sederhana
+        // PERBAIKAN: Hitung dari koleksi Comic, bukan User
+        const totalComic = await Comic.countDocuments(); 
         res.render('admin/dashboard', { 
             user: req.session.user,
             stats: { totalUser, totalComic },
@@ -18,41 +19,96 @@ exports.getDashboard = async (req, res) => {
 };
 
 exports.manageUsers = async (req, res) => {
-    const users = await User.find().sort({ createdAt: -1 });
-    res.render('admin/users', { user: req.session.user, users, currentPath: '/admin/users' });
+    try {
+        const users = await User.find().sort({ createdAt: -1 });
+        // Password akan terkirim secara otomatis (dalam bentuk hash) 
+        // karena di skema Mongoose biasanya tidak di-exclude secara default
+        res.render('admin/users', { user: req.session.user, users, currentPath: '/admin/users' });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 };
 
 exports.deleteUser = async (req, res) => {
-    await User.findByIdAndDelete(req.params.id);
-    res.redirect('/admin/users');
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.redirect('/admin/users');
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 };
 
 exports.manageComics = async (req, res) => {
-    const comics = await Comic.find().populate('uploadedBy');
-    res.render('admin/comics', { user: req.session.user, comics, currentPath: '/admin/comics' });
+    try {
+        // Mengambil semua komik dan data usernya
+        const comics = await Comic.find().populate('uploadedBy');
+        res.render('admin/comics', { 
+            user: req.session.user, 
+            comics: comics || [], // Jaga-jaga jika null, kirim array kosong
+            currentPath: '/admin/comics' 
+        });
+    } catch (err) {
+        console.error("Error Manage Comics:", err);
+        res.status(500).send("Gagal memuat daftar komik: " + err.message);
+    }
+};
+
+exports.getCreatorAccess = async (req, res) => {
+    try {
+        // Mengambil semua user untuk dikelola hak aksesnya
+        const users = await User.find().sort({ role: 1 }); 
+        res.render('admin/creators', { 
+            user: req.session.user, 
+            users, 
+            currentPath: '/admin/creators' 
+        });
+    } catch (err) {
+        res.status(500).send("Gagal memuat halaman akses kreator: " + err.message);
+    }
+};
+
+exports.makeCreator = async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Update role user menjadi 'creator'
+        await User.findByIdAndUpdate(id, { role: 'creator' });
+        res.redirect('/admin/creators?status=promoted');
+    } catch (err) {
+        res.status(500).send("Gagal mengubah role: " + err.message);
+    }
 };
 
 exports.updateInternalProfile = async (req, res) => {
-    const { email, password } = req.body;
-    const updateData = { email };
-    
-    if (password) {
-        updateData.password = await bcrypt.hash(password, 10);
-    }
+    try {
+        const { email, password } = req.body;
+        const updateData = { email };
+        
+        if (password) {
+            updateData.password = await bcrypt.hash(password, 10);
+        }
 
-    await User.findByIdAndUpdate(req.session.user.id, updateData);
-    res.redirect('/admin?status=updated');
+        await User.findByIdAndUpdate(req.session.user.id, updateData);
+        res.redirect('/admin?status=updated');
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 };
 
 exports.manageGenres = async (req, res) => {
-    // Karena genre biasanya disimpan dalam array unik di koleksi Comic atau file statis
-    // Kita bisa ambil daftar genre unik dari semua komik yang ada
-    const comics = await Comic.find();
-    const genres = [...new Set(comics.flatMap(c => c.genres))]; 
-    res.render('admin/genres', { user: req.session.user, genres, currentPath: '/admin/genres' });
+    try {
+        const comics = await Comic.find();
+        const genres = [...new Set(comics.flatMap(c => c.genres))]; 
+        res.render('admin/genres', { user: req.session.user, genres, currentPath: '/admin/genres' });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 };
 
 exports.deleteComic = async (req, res) => {
-    await Comic.findByIdAndDelete(req.params.id);
-    res.redirect('/admin/comics');
+    try {
+        await Comic.findByIdAndDelete(req.params.id);
+        res.redirect('/admin/comics');
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 };

@@ -6,7 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
-    <title>Kelola User - KomikKu Admin</title>
+    <title>Akses Kreator - KomikKu Admin</title>
     <style>
         /* Desain khusus tabel manajemen tema gelap */
         .admin-table {
@@ -40,21 +40,24 @@
         .admin-table tr:hover td {
             background-color: rgba(255, 255, 255, 0.02);
         }
-        .btn-delete {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            padding: 6px 12px;
+        
+        /* Tombol Jadikan Kreator (Warna Biru/Cyan) */
+        .btn-promote {
+            color: #2299DD;
+            background: rgba(34, 153, 221, 0.1);
+            border: 1px solid rgba(34, 153, 221, 0.2);
+            padding: 8px 16px;
             border-radius: 6px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-delete:hover {
-            background: #ef4444;
+        .btn-promote:hover {
+            background: #2299DD;
             color: #fff;
         }
+
         .role-badge {
             display: inline-block;
             font-size: 12px;
@@ -63,8 +66,6 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        .role-admin { background-color: rgba(34, 153, 221, 0.2); color: #2299DD; }
-        .role-creator { background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; }
         .role-user { background-color: rgba(161, 161, 170, 0.2); color: #a1a1aa; }
     </style>
 </head>
@@ -85,9 +86,9 @@
                 <a href="/auth/profile"><i class="icon">👤</i> Profil Utama</a>
                 
                 <label style="margin-top:20px">MANAGEMENT</label>
-                <a href="/admin/users" class="active"><i class="icon">👥</i> Kelola User</a>
+                <a href="/admin/users"><i class="icon">👥</i> Kelola User</a>
                 <a href="/admin/comics"><i class="icon">📚</i> Kelola Komik</a>
-                <a href="/admin/creators"><i class="icon">✍️</i> Akses Kreator</a>
+                <a href="/admin/creators" class="active"><i class="icon">✍️</i> Akses Kreator</a>
                 
                 <label style="margin-top:20px">AKSI</label>
                 <a href="/auth/logout" style="color: #ef4444;"><i class="icon">🚪</i> Keluar</a>
@@ -96,7 +97,8 @@
 
         <main class="admin-main">
             <header class="main-header">
-                <h1 style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: #f59e0b;">👥 Kelola Pengguna</h1>
+                <h1 style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: #2299DD;">✍️ Akses Kreator</h1>
+                <p style="color: #a1a1aa; font-size: 14px;">Daftar pengguna yang dapat dipromosikan menjadi Kreator Komik.</p>
             </header>
             
             <table class="admin-table">
@@ -104,8 +106,8 @@
                     <tr>
                         <th>Nama Pengguna</th>
                         <th>Alamat Email</th>
-                        <th>Password</th> <!-- Tambahan Kolom Password -->
-                        <th>Hak Akses (Role)</th>
+                        <th>Password (Hash)</th>
+                        <th>Status Role</th>
                         <th>Tindakan</th>
                     </tr>
                 </thead>
@@ -115,35 +117,24 @@
                         <tr>
                             <td style="font-weight: 600;"><%= u.firstName %> <%= u.lastName %></td>
                             <td style="color: #a1a1aa;"><%= u.email %></td>
-                            <!-- Baris Tambahan untuk menampilkan Password (Hash) -->
                             <td style="color: #71717a; font-family: monospace; font-size: 11px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 <%= u.password %>
                             </td>
                             <td>
-                                <% if(u.role === 'admin') { %>
-                                    <span class="role-badge role-admin"><%= u.role %></span>
-                                <% } else if(u.role === 'creator') { %>
-                                    <span class="role-badge role-creator"><%= u.role %></span>
-                                <% } else { %>
-                                    <span class="role-badge role-user"><%= u.role %></span>
-                                <% } %>
+                                <span class="role-badge role-user"><%= u.role %></span>
                             </td>
                             <td>
-                                <% if(u.role !== 'admin') { %>
-                                <form action="/admin/users/delete/<%= u._id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna bernama <%= u.firstName %>?')">
-                                    <button type="submit" class="btn-delete">Hapus</button>
+                                <form action="/admin/creators/promote/<%= u._id %>" method="POST" onsubmit="return confirm('Promosikan <%= u.firstName %> menjadi Kreator Komik?')">
+                                    <button type="submit" class="btn-promote">✨ Jadikan Kreator</button>
                                 </form>
-                                <% } else { %>
-                                    <span style="color: #52525b; font-size: 13px; font-style: italic;">Tidak dapat dihapus</span>
-                                <% } %>
                             </td>
                         </tr>
                         <% }) %>
                     <% } else { %>
                         <tr>
-                            <!-- Colspan diubah dari 4 menjadi 5 karena ada penambahan kolom password -->
-                            <td colspan="5" style="text-align: center; color: #71717a; padding: 32px;">
-                                Tidak ada data pengguna yang ditemukan.
+                            <td colspan="5" style="text-align: center; color: #71717a; padding: 48px;">
+                                <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+                                Tidak ada pengguna baru yang perlu dipromosikan saat ini.
                             </td>
                         </tr>
                     <% } %>
