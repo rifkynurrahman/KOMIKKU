@@ -7,6 +7,14 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   avatar: { type: String, default: null },
+  
+  // 🛡️ TAMBAHKAN FIELD ROLE INI
+  role: { 
+    type: String, 
+    enum: ['guest', 'creator', 'admin'], 
+    default: 'creator' 
+  },
+
   readHistory: [{
     comicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Comic' },
     comicTitle: String,
@@ -14,9 +22,7 @@ const userSchema = new mongoose.Schema({
     readAt: { type: Date, default: Date.now }
   }],
   
-  // 🟢 SEKARANG BOOKMARK SUDAH MASUK DI TEMPAT YANG BENAR!
   bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comic' }]
 }, { timestamps: true });
-
 
 module.exports = mongoose.model('User', userSchema);
