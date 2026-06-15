@@ -13,5 +13,6 @@ router.post('/users/delete/:id', adminController.deleteUser);
 router.get('/comics', adminController.manageComics);
 router.post('/profile/internal', adminController.updateInternalProfile);
 router.get('/genres', adminController.manageGenres);
+router.post('/comics/delete/:id', adminController.deleteComic);
 
 module.exports = router;
