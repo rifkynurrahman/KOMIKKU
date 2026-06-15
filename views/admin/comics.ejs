@@ -1,42 +1,66 @@
-<!-- views/admin/comics.ejs -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
     <title>Kelola Komik - Admin Panel</title>
 </head>
 <body class="admin-body">
     <div class="admin-wrapper">
-        <!-- Memanggil sidebar yang sama dengan halaman users -->
-        <%- include('sidebar_partial_admin') %> 
+        
+        <!-- SIDEBAR (Menggantikan include yang error) -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <small>SET MANUAL VIA DATABASE</small>
+                <div class="admin-brand">🛡️ Admin Panel</div>
+            </div>
+            
+            <div class="sidebar-menu">
+                <label>NAVBAR</label>
+                <a href="/"><i class="icon">🏠</i> Beranda</a>
+                <a href="/browse"><i class="icon">🧭</i> Browse</a>
+                <a href="/admin"><i class="icon">🛡️</i> Dashboard <span class="badge-khusus">Khusus</span></a>
+                <a href="/auth/profile"><i class="icon">👤</i> Profil Utama</a>
+                
+                <label style="margin-top:20px">MANAGEMENT</label>
+                <a href="/admin/users"><i class="icon">👥</i> Kelola User</a>
+                <a href="/admin/comics" class="active"><i class="icon">📚</i> Kelola Komik</a>
+                <a href="/admin/creators"><i class="icon">✍️</i> Akses Kreator</a>
+                
+                <label style="margin-top:20px">AKSI</label>
+                <a href="/auth/logout" style="color: #ef4444;"><i class="icon">🚪</i> Keluar</a>
+            </div>
+        </nav>
 
-        <main class="admin-main" style="padding:20px; width:100%">
-            <h2 style="color:#ffcc00; font-family:'Bangers'; letter-spacing:1px">📚 Daftar Semua Komik</h2>
-            <p style="color:#888; font-size:14px">Pantau dan kelola seluruh konten komik yang ada di platform.</p>
+        <main class="admin-main">
+            <header class="main-header">
+                <h1 style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: #ffcc00;">📚 Daftar Semua Komik</h1>
+                <p style="color: #a1a1aa; font-size: 14px;">Pantau dan kelola seluruh konten komik yang ada di platform.</p>
+            </header>
 
-            <table border="1" style="width:100%; margin-top:20px; border-collapse:collapse; color:#f5f5f5; border: 1px solid #333;">
+            <table class="admin-table" style="width:100%; border-collapse: collapse; background: #1a1a1e; border-radius: 12px; overflow: hidden; border: 1px solid #333;">
                 <thead>
-                    <tr style="background:#252525; text-align:left">
-                        <th style="padding:15px">Cover</th>
-                        <th>Judul Komik</th>
-                        <th>Kreator / Uploaded By</th>
-                        <th>Genre</th>
-                        <th>Aksi</th>
+                    <tr style="background:#242429; color: #a1a1aa; text-align: left;">
+                        <th style="padding:15px; border-bottom: 1px solid #333;">Cover</th>
+                        <th style="padding:15px; border-bottom: 1px solid #333;">Judul Komik</th>
+                        <th style="padding:15px; border-bottom: 1px solid #333;">Kreator / Oleh</th>
+                        <th style="padding:15px; border-bottom: 1px solid #333;">Genre</th>
+                        <th style="padding:15px; border-bottom: 1px solid #333;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% if (comics && comics.length > 0) { %>
                         <% comics.forEach(c => { %>
-                        <tr style="border-bottom:1px solid #333">
+                        <tr style="border-bottom: 1px solid rgba(63, 63, 70, 0.2);">
                             <td style="padding:10px; width:80px">
                                 <img src="/<%= c.coverImage %>" alt="Cover" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid #444">
                             </td>
-                            <td style="font-weight:bold"><%= c.title %></td>
-                            <td>
-                                <span style="color:#2299DD">@<%= c.uploadedBy ? c.uploadedBy.username : 'Anonim' %></span>
+                            <td style="font-weight:bold; color: #f5f5f5;"><%= c.title %></td>
+                            <td style="color: #2299DD;">
+                                @<%= c.uploadedBy ? c.uploadedBy.username : 'Anonim' %>
                             </td>
                             <td>
                                 <% if(c.genres) { %>
@@ -44,10 +68,9 @@
                                 <% } %>
                             </td>
                             <td>
-                                <div style="display:flex; gap:10px">
-                                    <a href="/komik/<%= c._id %>" target="_blank" style="color:#ffcc00; text-decoration:none; font-size:13px">Buka</a>
+                                <div style="display:flex; gap:15px">
+                                    <a href="/komik/<%= c._id %>" target="_blank" style="color:#ffcc00; text-decoration:none; font-size:13px; font-weight: bold;">Buka</a>
                                     
-                                    <!-- Form Hapus Komik oleh Admin -->
                                     <form action="/admin/comics/delete/<%= c._id %>" method="POST" onsubmit="return confirm('Hapus komik ini secara permanen?')">
                                         <button type="submit" style="color:#ff4444; background:none; border:none; cursor:pointer; font-size:13px; font-family:inherit; font-weight:bold">Hapus</button>
                                     </form>
