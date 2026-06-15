@@ -63,36 +63,50 @@
 
 ## Struktur Folder
 ```text
-komikku/
-├── controllers/        # [Rencana] Logika pemrosesan data (Admin & Creator)
-├── middleware/         # [Rencana] Proteksi rute & pembatasan akses Admin
-├── data/               # Data statis aplikasi
-│   └── dummyData.js    # Menyimpan daftar genre komik
-├── foto/               # Penyimpanan gambar cover komik hasil upload
-├── logo/               # Aset gambar sistem (e.g., kamera.png)
-├── models/             # Skema database (Mongoose Models)
-│   ├── Comic.js        # Skema data komik & isi chapter didalamnya
-│   └── User.js         # Skema data pengguna & riwayat baca
-├── routes/             # Endpoint & Logika aplikasi (Routing)
-│   ├── auth.js         # Sistem login, register, & logout
-│   ├── author.js       # Fitur creator untuk mengelola & upload komik
-│   ├── guest.js        # Rute publik (Beranda, Browse, Detail, & Baca)
-│   └── admin.js        # [Rencana] Rute khusus Admin & Form CRUD Manajemen
-├── public/             # Aset statis front-end
-│   ├── avatar/         # Gambar profil pengguna
-│   ├── css/            # Style utama halaman (style.css)
-│   └── js/             # Script interaksi client-side (main.js)
-├── views/              # Template UI (EJS)
-│   ├── index.ejs       # Halaman utama (Trending & Rilis Terbaru)
-│   ├── browse.ejs      # Halaman pencarian & filter genre
-│   ├── detail.ejs      # Halaman info detail komik
-│   ├── read.ejs        # Halaman pembaca gambar-gambar chapter
-│   ├── admin/          # [Rencana] Folder khusus halaman EJS Admin
-│   │   └── dashboard.ejs # Form manajemen komik/user oleh admin
-│   └── partials/       # Komponen modular (navbar, footer)
-├── app.js              # Entry point utama aplikasi Express
-├── package.json        # Dependensi project & script running
-└── .env                # Variabel lingkungan (Koneksi MongoDB & Session Secret)
+komikku-guest/
+├── controllers/          # Logika pemrosesan data (Backend)
+│   └── adminController.js # Mengatur aksi admin (Kelola user & komik)
+├── middleware/           # Proteksi rute & pembatasan hak akses
+│   └── isAdmin.js        # Memastikan hanya akun ber-role admin yang masuk
+├── data/                 # Penyimpanan data statis pendukung
+│   └── dummyData.js      # Menyimpan daftar genre, status, dll.
+├── foto/                 # Penyimpanan gambar sampul (cover) komik hasil unggahan
+├── logo/                 # Aset gambar bawaan sistem aplikasi
+├── models/               # Skema database berbasis Mongoose (MongoDB)
+│   ├── Comic.js          # Skema data komik, chapter, dan gambar isi komik
+│   └── User.js           # Skema data akun pengguna, role, & riwayat baca
+├── routes/               # Gerbang endpoint aplikasi (Routing)
+│   ├── admin.js          # Jalur khusus panel kontrol admin
+│   ├── auth.js           # Jalur sistem masuk (login), daftar, & keluar (logout)
+│   ├── author.js         # Jalur studio kreator untuk upload komik
+│   ├── guest.js          # Jalur publik (Beranda, Detail Komik, & Browse)
+│   └── routes.js         # Pengatur rute tambahan aplikasi
+├── public/               # Aset statis front-end yang bisa diakses publik
+│   ├── avatar/           # Tempat menyimpan berkas gambar profil user
+│   ├── css/              # Kumpulan berkas style tampilan halaman (admin.css, style.css, dll.)
+│   └── js/               # Kumpulan skrip interaksi client-side (main.js, profile.js, dll.)
+├── views/                # Berkas template antarmuka pengguna (EJS)
+│   ├── admin/            # Wilayah dashboard kontrol admin
+│   │   ├── comics.ejs    # Halaman manajemen daftar komik oleh admin
+│   │   ├── dashboard.ejs # Halaman utama statistik dan profil internal admin
+│   │   └── users.ejs     # Halaman tabel kelola & hapus akun pengguna
+│   ├── partials/         # Komponen UI modular yang dipakai berulang (Navbar & Footer)
+│   ├── author.ejs        # Tampilan dashboard studio khusus pembuat komik
+│   ├── browse.ejs        # Tampilan pencarian, filter genre, dan list komik
+│   ├── detail.ejs        # Tampilan informasi detail, sinopsis, dan daftar bab komik
+│   ├── edit-profile.ejs  # Form pengubahan data profil pembaca
+│   ├── index.ejs         # Tampilan beranda utama (Trending & Rilis Terbaru)
+│   ├── login.ejs         # Tampilan form masuk akun
+│   ├── profile.ejs       # Tampilan halaman profil utama dan riwayat bacaan
+│   ├── read.ejs          # Tampilan lembar baca gambar-gambar chapter komik
+│   ├── register.ejs      # Tampilan form pendaftaran akun baru
+│   └── upload.ejs        # Tampilan form unggah komik baru oleh author
+├── app.js                # Berkas utama (Entry Point) konfigurasi Express & Koneksi DB
+├── package.json          # Berkas catatan dependencies library (Mongoose, Express, EJS)
+├── package-lock.json     # Catatan versi detail penguncian library node_modules
+├── .gitignore            # Daftar berkas/folder tersembunyi yang diabaikan oleh Git (e.g., node_modules)
+├── seedAdmin.js          # Skrip otomatis untuk membuat akun admin utama di database
+└── seeder.js             # Skrip otomatis untuk mengisi data dummy komik ke database
 
 ⚙️ Instalasi
 📌 Prasyarat (Wajib Diinstall Sebelum Mulai)
