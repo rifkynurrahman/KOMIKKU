@@ -1,0 +1,43 @@
+<!-- views/admin/users.ejs -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <title>Kelola User - KomikKu Admin</title>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <%- include('dashboard', { user: user }) %> <!-- Sidebar diambil dari dashboard -->
+        <main class="admin-main" style="padding:40px; flex:1">
+            <h2 style="color:#ffcc00; font-family:'Bangers'">👥 Kelola Pengguna</h2>
+            <table style="width:100%; color:white; border-collapse:collapse; margin-top:20px">
+                <thead>
+                    <tr style="background:#333; text-align:left">
+                        <th style="padding:15px">Nama</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(u => { %>
+                    <tr style="border-bottom:1px solid #444">
+                        <td style="padding:15px"><%= u.firstName %> <%= u.lastName %></td>
+                        <td><%= u.email %></td>
+                        <td><span class="badge-khusus"><%= u.role %></span></td>
+                        <td>
+                            <% if(u.role !== 'admin') { %>
+                            <form action="/admin/users/delete/<%= u._id %>" method="POST" onsubmit="return confirm('Hapus user ini?')">
+                                <button type="submit" style="color:#ff4444; background:none; border:none; cursor:pointer">Hapus</button>
+                            </form>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </main>
+    </div>
+</body>
+</html>
