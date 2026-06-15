@@ -51,3 +51,8 @@ exports.manageGenres = async (req, res) => {
     const genres = [...new Set(comics.flatMap(c => c.genres))]; 
     res.render('admin/genres', { user: req.session.user, genres, currentPath: '/admin/genres' });
 };
+
+exports.deleteComic = async (req, res) => {
+    await Comic.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/comics');
+};
