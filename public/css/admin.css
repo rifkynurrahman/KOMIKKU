@@ -1,77 +1,181 @@
-/* public/css/admin.css */
-.admin-body {
-    background: #1a1a1a;
-    color: #e0e0e0;
+/* =========================================================================
+   public/css/admin.css — Gaya Visual Khusus untuk Panel Admin (Anti Bentrok) ✨
+   ========================================================================= */
+
+/* Reset Kontainer Utama */
+body.admin-body {
+    background-color: #121214 !important;
+    color: #f5f5f5 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Nunito', sans-serif !important;
 }
 
 .admin-wrapper {
-    display: flex;
-    min-height: 100vh;
+    display: flex !important;
+    min-height: 100vh !important;
 }
 
+/* --- 1. SIDEBAR STYLE --- */
 .admin-sidebar {
-    width: 260px;
-    background: #252525;
-    padding: 20px;
-    border-right: 1px solid #333;
+    width: 260px !important;
+    height: 100px !important;
+    background-color: #1a1a1e !important;
+    border-right: 1px solid rgba(63, 63, 70, 0.4) !important;
+    padding: 24px 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
 }
 
 .sidebar-header {
-    background: #3d3401; /* Warna coklat/emas gelap sesuai gambar */
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 30px;
+    margin-bottom: 32px !important;
+    padding-bottom: 16px !important;
+    border-bottom: 1px solid rgba(63, 63, 70, 0.3) !important;
 }
 
 .sidebar-header small {
-    color: #a38b00;
-    font-weight: bold;
-    font-size: 10px;
+    display: block !important;
+    color: #71717a !important;
+    font-size: 10px !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 4px !important;
 }
 
 .admin-brand {
-    color: #ffcc00;
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 5px;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #2299DD !important;
+}
+
+.sidebar-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
 }
 
 .sidebar-menu label {
-    display: block;
-    font-size: 11px;
-    color: #666;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #52525b !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 6px !important;
+    padding-left: 8px !important;
 }
 
+/* Navigasi Link di Sidebar */
 .sidebar-menu a {
-    display: block;
-    color: #bbb;
-    padding: 10px 0;
-    text-decoration: none;
-    font-size: 14px;
-    transition: 0.3s;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    color: #a1a1aa !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
 }
 
-.sidebar-menu a:hover, .sidebar-menu a.active {
-    color: #fff;
+.sidebar-menu a:hover {
+    background-color: rgba(34, 153, 221, 0.1) !important;
+    color: #2299DD !important;
+}
+
+.sidebar-menu a.active {
+    background-color: #2299DD !important;
+    color: #ffffff !important;
 }
 
 .badge-khusus {
-    background: #4a3f00;
-    color: #ffcc00;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    float: right;
+    background-color: #f59e0b !important;
+    color: #121214 !important;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    margin-left: auto !important;
 }
 
+/* --- 2. MAIN CONTENT STYLE --- */
+.admin-main {
+    flex-grow: 1 !important;
+    padding: 40px !important;
+    background-color: #121214 !important;
+}
+
+.main-header {
+    margin-bottom: 32px !important;
+    border-bottom: 1px solid rgba(63, 63, 70, 0.3) !important;
+    padding-bottom: 16px !important;
+}
+
+.main-header h1 {
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    color: #f5f5f5 !important;
+}
+
+/* --- 3. FORM PROFIL STYLE --- */
+.internal-profile {
+    background-color: #1a1a1e !important;
+    border: 1px solid rgba(63, 63, 70, 0.4) !important;
+    border-radius: 16px !important;
+    padding: 32px !important;
+    max-width: 500px !important;
+}
+
+.internal-profile h3 {
+    margin-top: 0 !important;
+    margin-bottom: 24px !important;
+    font-size: 18px !important;
+    color: #f5f5f5 !important;
+}
+
+.admin-form .form-group {
+    margin-bottom: 20px !important;
+}
+
+.admin-form label {
+    display: block !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #a1a1aa !important;
+    margin-bottom: 8px !important;
+}
+
+.admin-form input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background-color: #121214 !important;
+    border: 1px solid rgba(63, 63, 70, 0.6) !important;
+    color: #f5f5f5 !important;
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    outline: none !important;
+    transition: border-color 0.2s !important;
+}
+
+.admin-form input:focus {
+    border-color: #2299DD !important;
+}
+
+/* Tombol Submit */
 .btn-gold {
-    background: #ffcc00;
-    color: #000;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
+    width: 100% !important;
+    padding: 14px !important;
+    background-color: #f59e0b !important;
+    color: #121214 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+}
+
+.btn-gold:hover {
+    background-color: #d97706 !important;
 }

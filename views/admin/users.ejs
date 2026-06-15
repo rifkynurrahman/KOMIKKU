@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <title>Kelola User - KomikKu Admin</title>
+    <style>
+        /* Desain khusus tabel manajemen tema gelap */
+        .admin-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 24px;
+            background-color: #1a1a1e;
+            border: 1px solid rgba(63, 63, 70, 0.4);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .admin-table th {
+            background-color: #242429;
+            color: #a1a1aa;
+            padding: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            border-bottom: 1px solid rgba(63, 63, 70, 0.4);
+        }
+        .admin-table td {
+            padding: 16px;
+            color: #f5f5f5;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(63, 63, 70, 0.2);
+        }
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+        .admin-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .btn-delete {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-delete:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        .role-badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .role-admin { background-color: rgba(34, 153, 221, 0.2); color: #2299DD; }
+        .role-creator { background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .role-user { background-color: rgba(161, 161, 170, 0.2); color: #a1a1aa; }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <small>SET MANUAL VIA DATABASE</small>
+                <div class="admin-brand">🛡️ Admin Panel</div>
+            </div>
+            
+            <div class="sidebar-menu">
+                <label>NAVBAR</label>
+                <a href="/"><i class="icon">🏠</i> Beranda</a>
+                <a href="/browse"><i class="icon">🧭</i> Browse</a>
+                <a href="/admin"><i class="icon">🛡️</i> Dashboard <span class="badge-khusus">Khusus</span></a>
+                <a href="/auth/profile"><i class="icon">👤</i> Profil Utama</a>
+                
+                <label style="margin-top:20px">MANAGEMENT</label>
+                <a href="/admin/users" class="active"><i class="icon">👥</i> Kelola User</a>
+                <a href="/admin/comics"><i class="icon">📚</i> Kelola Komik</a>
+                <a href="/admin/creators"><i class="icon">✍️</i> Akses Kreator</a>
+                
+                <label style="margin-top:20px">AKSI</label>
+                <a href="/auth/logout" style="color: #ef4444;"><i class="icon">🚪</i> Keluar</a>
+            </div>
+        </nav>
+
+        <main class="admin-main">
+            <header class="main-header">
+                <h1 style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: #f59e0b;">👥 Kelola Pengguna</h1>
+            </header>
+            
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nama Pengguna</th>
+                        <th>Alamat Email</th>
+                        <th>Hak Akses (Role)</th>
+                        <th>Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (locals.users && users.length > 0) { %>
+                        <% users.forEach(u => { %>
+                        <tr>
+                            <td style="font-weight: 600;"><%= u.firstName %> <%= u.lastName %></td>
+                            <td style="color: #a1a1aa;"><%= u.email %></td>
+                            <td>
+                                <% if(u.role === 'admin') { %>
+                                    <span class="role-badge role-admin"><%= u.role %></span>
+                                <% } else if(u.role === 'creator') { %>
+                                    <span class="role-badge role-creator"><%= u.role %></span>
+                                <% } else { %>
+                                    <span class="role-badge role-user"><%= u.role %></span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if(u.role !== 'admin') { %>
+                                <form action="/admin/users/delete/<%= u._id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna bernama <%= u.firstName %>?')">
+                                    <button type="submit" class="btn-delete">Hapus</button>
+                                </form>
+                                <% } else { %>
+                                    <span style="color: #52525b; font-size: 13px; font-style: italic;">Tidak dapat dihapus</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #71717a; padding: 32px;">
+                                Tidak ada data pengguna yang ditemukan.
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </main>
+
+    </div>
+</body>
+</html>

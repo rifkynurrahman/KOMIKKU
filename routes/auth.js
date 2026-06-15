@@ -48,7 +48,7 @@ router.get('/login', (req, res) => {
 });
 
 // ============================================================
-// POST /auth/login — Handle login dengan email atau username
+// POST /auth/login — Handle login dengan email atau username (SUDAH DISESUAIKAN ✨)
 // ============================================================
 router.post('/login', async (req, res) => {
   try {
@@ -80,14 +80,19 @@ router.post('/login', async (req, res) => {
       });
     }
     
+    // SESUAIKAN: Menambahkan data role ke dalam session user agar lolos middleware isAdmin
     req.session.user = {
       id: user._id,
       username: user.username,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      avatar: user.avatar || null
+      avatar: user.avatar || null,
+      role: user.role || 'user' // 🔥 Kunci utama: Menyimpan role ke session
     };
+    
+    // Cadangan: simpan juga di root session jika dibutuhkan
+    req.session.role = user.role || 'user';
     
     req.session.save((saveErr) => {
       if (saveErr) {
@@ -98,10 +103,12 @@ router.post('/login', async (req, res) => {
         });
       }
 
+      // SESUAIKAN: Mengirim data role kembali ke frontend login
       res.json({ 
         success: true, 
         message: 'Login berhasil! Selamat datang', 
-        user: req.session.user
+        user: req.session.user,
+        role: user.role || 'user' // 🔥 Dikirim agar javascript di login.ejs bisa mengarahkan halaman
       });
     });
   } catch (err) {
@@ -173,7 +180,8 @@ router.post('/register', async (req, res) => {
       lastName,
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: 'user' // Default set sebagai user biasa
     });
     
     await newUser.save();
@@ -184,8 +192,11 @@ router.post('/register', async (req, res) => {
       email: newUser.email,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
-      avatar: newUser.avatar || null
+      avatar: newUser.avatar || null,
+      role: newUser.role
     };
+
+    req.session.role = newUser.role;
     
     req.session.save((saveErr) => {
       if (saveErr) {
@@ -200,6 +211,7 @@ router.post('/register', async (req, res) => {
         success: true, 
         message: 'Registrasi berhasil! Anda sudah login otomatis.', 
         user: req.session.user,
+        role: newUser.role,
         redirectTo: '/'
       });
     });
@@ -281,7 +293,7 @@ router.get('/profile/edit', async (req, res) => {
 });
 
 // =========================================================================
-// POST /auth/profile/edit — Proses Gabungan Teks & Upload Avatar (SUPER FIXED ✨)
+// POST /auth/profile/edit — Proses Gabungan Teks & Upload Avatar
 // =========================================================================
 router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => {
   try {
@@ -336,22 +348,18 @@ router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => 
       userDb.password = await bcrypt.hash(password, 10);
     }
 
-    // JIKA ADA FILE AVATAR BARU YANG DI-UPLOAD
     if (req.file) {
-      // Hapus foto profil lama dari folder public/avatar jika ada
       if (userDb.avatar && userDb.avatar.startsWith('/avatar/')) {
         const oldAvatarPath = path.join(__dirname, '..', 'public', userDb.avatar);
         if (fs.existsSync(oldAvatarPath)) {
           fs.unlinkSync(oldAvatarPath);
         }
       }
-      // Simpan path baru mengarah ke folder statis /avatar/
       userDb.avatar = `/avatar/${req.file.filename}`;
     }
     
     await userDb.save();
     
-    // Sinkronisasi data Session saat ini
     req.session.user.username = userDb.username;
     req.session.user.firstName = userDb.firstName;
     req.session.user.lastName = userDb.lastName;
@@ -361,7 +369,6 @@ router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => 
       if (saveErr) {
         console.error('Error saat menyimpan session ter-update:', saveErr);
       }
-      // REDIRECT ke profil utama membawa parameter status success agar SweetAlert memicu keluar pop-up
       res.redirect('/auth/profile?status=success');
     });
     

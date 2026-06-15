@@ -103,9 +103,15 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         showConfirmButton: false
       });
 
-      // Redirect otomatis setelah pop-up muncul sebentar
+      // SESUAIKAN: Cek role user untuk menentukan arah halaman tujuan ✨
       setTimeout(() => {
-        window.location.href = '/';
+        if (data.role === 'admin') {
+          window.location.href = '/admin'; // 🔥 Jika Admin Utama, langsung buka dashboard admin!
+        } else if (data.role === 'creator') {
+          window.location.href = '/author'; // Jika Kreator, masuk studio komik
+        } else {
+          window.location.href = '/'; // Jika User Biasa, lempar ke beranda utama
+        }
       }, 2000);
 
     } else {
