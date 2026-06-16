@@ -153,5 +153,3 @@ npm run dev
 # Mode Produksi (Production)
 npm start
 Buka browser kamu dan akses halaman di: http://localhost:3000
-
-by yudha
