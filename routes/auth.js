@@ -48,7 +48,7 @@ router.get('/login', (req, res) => {
 });
 
 // ============================================================
-// POST /auth/login — Handle login dengan email atau username (SUDAH DISESUAIKAN ✨)
+// POST /auth/login — Handle login dengan email atau username
 // ============================================================
 router.post('/login', async (req, res) => {
   try {
@@ -88,11 +88,11 @@ router.post('/login', async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar || null,
-      role: user.role || 'user' // 🔥 Kunci utama: Menyimpan role ke session
+      role: user.role || 'creator' // ✨ Disesuaikan fallback default-nya ke 'creator'
     };
     
     // Cadangan: simpan juga di root session jika dibutuhkan
-    req.session.role = user.role || 'user';
+    req.session.role = user.role || 'creator';
     
     req.session.save((saveErr) => {
       if (saveErr) {
@@ -108,7 +108,7 @@ router.post('/login', async (req, res) => {
         success: true, 
         message: 'Login berhasil! Selamat datang', 
         user: req.session.user,
-        role: user.role || 'user' // 🔥 Dikirim agar javascript di login.ejs bisa mengarahkan halaman
+        role: user.role || 'creator'
       });
     });
   } catch (err) {
@@ -128,7 +128,7 @@ router.get('/register', (req, res) => {
 });
 
 // ============================================================
-// POST /auth/register — Handle registrasi user baru
+// POST /auth/register — Handle registrasi user baru (SUDAH DIKOREKSI ✨)
 // ============================================================
 router.post('/register', async (req, res) => {
   try {
@@ -181,7 +181,7 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role: 'user' // Default set sebagai user biasa
+      role: 'creator' // 🔥 DIUBAH: Sekarang menggunakan 'creator' agar sesuai dengan enum Mongoose
     });
     
     await newUser.save();
