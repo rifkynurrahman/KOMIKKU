@@ -108,13 +108,23 @@ select.reader-btn{appearance:none;padding-right:28px;background-image:url("data:
 
 <script>
 document.addEventListener('keydown', e => {
-  if(e.key === 'ArrowLeft') {
-    const prev = document.querySelector('a[href*="/baca/<%= chapter.number > 1 ? chapter.number - 1 : chapter.number %>"]');
-    if(prev && <%= chapter.number %> > 1) window.location = prev.href;
+  // Parsing variabel EJS ke dalam JavaScript lokal agar aman saat dicek kondisinya
+  const currentChapter = parseInt("<%= chapter.number %>");
+  const totalChapters = parseInt("<%= allChapters.length %>");
+  const comicId = "<%= comic._id || comic.id %>";
+
+  if (e.key === 'ArrowLeft') {
+    // Jalankan pemindahan halaman hanya jika chapter di atas 1 (Bukan chapter pertama)
+    if (currentChapter > 1) {
+      window.location.href = `/komik/${comicId}/baca/${currentChapter - 1}`;
+    }
   }
-  if(e.key === 'ArrowRight') {
-    const next = document.querySelector('a[href*="/baca/<%= chapter.number + 1 %>"]');
-    if(next && <%= chapter.number %> < <%= allChapters.length %>) window.location = next.href;
+  
+  if (e.key === 'ArrowRight') {
+    // Jalankan pemindahan halaman hanya jika belum mencapai chapter maksimal
+    if (currentChapter < totalChapters) {
+      window.location.href = `/komik/${comicId}/baca/${currentChapter + 1}`;
+    }
   }
 });
 </script>

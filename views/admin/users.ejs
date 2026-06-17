@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
     <title>Kelola User - KomikKu Admin</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         /* Desain khusus tabel manajemen tema gelap */
         .admin-table {
@@ -104,7 +108,7 @@
                     <tr>
                         <th>Nama Pengguna</th>
                         <th>Alamat Email</th>
-                        <th>Password</th> <!-- Tambahan Kolom Password -->
+                        <th>Password</th>
                         <th>Hak Akses (Role)</th>
                         <th>Tindakan</th>
                     </tr>
@@ -113,25 +117,24 @@
                     <% if (locals.users && users.length > 0) { %>
                         <% users.forEach(u => { %>
                         <tr>
-                            <td style="font-weight: 600;"><%= u.firstName %> <%= u.lastName %></td>
+                            <td class="nama-user-kolom" style="font-weight: 600;"><%= u.firstName %> <%= u.lastName %></td>
                             <td style="color: #a1a1aa;"><%= u.email %></td>
-                            <!-- Baris Tambahan untuk menampilkan Password (Hash) -->
                             <td style="color: #71717a; font-family: monospace; font-size: 11px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 <%= u.password %>
                             </td>
                             <td>
                                 <% if(u.role === 'admin') { %>
                                     <span class="role-badge role-admin"><%= u.role %></span>
-                                <% } else if(u.role === 'creator') { %>
+                                  <% } else if(u.role === 'creator') { %>
                                     <span class="role-badge role-creator"><%= u.role %></span>
-                                <% } else { %>
+                                  <% } else { %>
                                     <span class="role-badge role-user"><%= u.role %></span>
-                                <% } %>
+                                  <% } %>
                             </td>
                             <td>
                                 <% if(u.role !== 'admin') { %>
-                                <form action="/admin/users/delete/<%= u._id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna bernama <%= u.firstName %>?')">
-                                    <button type="submit" class="btn-delete">Hapus</button>
+                                <form id="form-delete-<%= u._id %>" action="/admin/users/delete/<%= u._id %>" method="POST" class="form-delete-user">
+                                    <button type="button" class="btn-delete" data-id="<%= u._id %>" data-nama="<%= u.firstName %> <%= u.lastName %>">Hapus</button>
                                 </form>
                                 <% } else { %>
                                     <span style="color: #52525b; font-size: 13px; font-style: italic;">Tidak dapat dihapus</span>
@@ -141,7 +144,6 @@
                         <% }) %>
                     <% } else { %>
                         <tr>
-                            <!-- Colspan diubah dari 4 menjadi 5 karena ada penambahan kolom password -->
                             <td colspan="5" style="text-align: center; color: #71717a; padding: 32px;">
                                 Tidak ada data pengguna yang ditemukan.
                             </td>
@@ -152,5 +154,33 @@
         </main>
 
     </div>
+
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                const nameUser = this.getAttribute('data-nama');
+                const targetForm = document.getElementById(`form-delete-${userId}`);
+
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: `Akun pengguna "${nameUser}" beserta hak aksesnya akan dihapus permanen!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#4e4e4e',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    background: '#1a1a1e',
+                    color: '#f5f5f5'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika admin menyetujui, submit form POST terkait secara terprogram
+                        targetForm.submit();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,12 +1,27 @@
 // app.js — Entry point KomikKu
 
 require('dotenv').config();
-
 const express = require('express');
 const path    = require('path');
 const session = require('express-session');
+const mongoose = require('mongoose'); // 🔥 Dipindahkan ke atas
+
 const app = express();
 
+// ==========================================
+// 1. KONEKSI DATABASE (Wajib di atas sebelum rute)
+// ==========================================
+mongoose.connect('mongodb://127.0.0.1:27017/komikku')
+  .then(() => {
+    console.log('✅ Berhasil terhubung ke MongoDB!');
+  })
+  .catch((err) => {
+    console.error('❌ Gagal terhubung ke MongoDB:', err);
+  });
+
+// ==========================================
+// 2. MIDDLEWARE CONFIGURATIONS
+// ==========================================
 // Session middleware
 app.use(session({
   secret: 'komikku-secret-key-2024',
@@ -23,24 +38,28 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/foto', express.static(path.join(__dirname, 'foto')));
 app.use('/logo', express.static(path.join(__dirname, 'logo')));
-app.use(express.static('public'));
+
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
-// Middleware untuk pass user ke semua views
+// Middleware untuk pass user ke semua views (res.locals)
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
+  // Menambahkan log di terminal console untuk memantau status login
+  console.log("User saat ini di Session:", req.session.user ? req.session.user.username : 'Belum Login / Guest');
   next();
 });
 
-// Routes — Guest (no auth required)
+// ==========================================
+// 3. ROUTES DEFINITION
+// ==========================================
 const guestRouter = require('./routes/guest');
-const authRouter = require('./routes/auth');
+const authRouter  = require('./routes/auth');
 const uploadRouter = require('./routes/upload');
 const authorRouter = require('./routes/author');
-const adminRouter = require('./routes/admin');
+const adminRouter  = require('./routes/admin');
+
 app.use('/', guestRouter);
 app.use('/auth', authRouter);
 app.use('/upload', uploadRouter);
@@ -58,21 +77,12 @@ app.use((req, res) => {
   `);
 });
 
+// ==========================================
+// 4. SERVER LISTENING & EXPORTS
+// ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✦ KomikKu running at http://localhost:${PORT}`);
 });
 
-module.exports = app;
-
-const mongoose = require('mongoose');
-
-// Setup koneksi Mongoose ke MongoDB
-// 'komikku' di akhir URL adalah nama database yang akan otomatis dibuat
-mongoose.connect('mongodb://127.0.0.1:27017/komikku')
-  .then(() => {
-    console.log('✅ Berhasil terhubung ke MongoDB!');
-  })
-  .catch((err) => {
-    console.error('❌ Gagal terhubung ke MongoDB:', err);
-  });
+module.exports = app; // 🔥 Selalu taruh module.exports di BARIS PALING AKHIR file

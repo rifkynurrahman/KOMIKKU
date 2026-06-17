@@ -13,17 +13,17 @@
   // Jaring pengaman supaya EJS tidak crash kalau variabel dari server tidak ada
   const safeTrending = (typeof trending !== 'undefined' && trending) ? trending : [];
   
-  // [BARU] Jaring pengaman khusus untuk komik terbaru rilisan kreator
+  // Jaring pengaman khusus untuk komik terbaru rilisan kreator
   const safeTerbaru = (typeof terbaru !== 'undefined' && terbaru) ? terbaru : [];
 
   const safeFormatViews = (typeof formatViews === 'function') ? formatViews : function(num) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'RB';
     return num;
   };
 
-  // Jaring pengaman baru khusus objek statistik real-time dari database
+  // Jaring pengaman objek statistik real-time dari database
   const safeStats = (typeof stats !== 'undefined' && stats) ? stats : {
     totalViews: 0,
     totalPembaca: 0,
@@ -55,11 +55,11 @@
         <div class="stat-lbl">Pembaca (Views)</div>
       </div>
       <div>
-        <div class="stat-num"><%= safeFormatViews(safeStats.totalKreator) %></div>
+        <div class="stat-num"><%= safeStats.totalKreator %></div>
         <div class="stat-lbl">Kreator</div>
       </div>
       <div>
-        <div class="stat-num"><%= safeFormatViews(safeStats.totalKomik) %></div>
+        <div class="stat-num"><%= safeStats.totalKomik %></div>
         <div class="stat-lbl">Komik</div>
       </div>
     </div>
@@ -67,16 +67,13 @@
 
   <div class="hero-right">
     <% safeTrending.slice(0,5).forEach((k, i) => { %>
-    <a href="/komik/<%= k._id %>" class="hero-cover-slot" style="<%= i===0 ? 'grid-row:span 2;' : '' %>">
+    <a href="/komik/<%= k._id %>" class="hero-cover-slot" <%= i === 0 ? 'style=grid-row:span\u00202;' : '' %>>
       <img src="/<%= k.coverImage %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
     </a>
     <% }) %>
   </div>
 </div>
 
-<!-- ========================================== -->
-<!-- SECTION 1: TRENDING (KOMIK TERPOPULER)     -->
-<!-- ========================================== -->
 <div class="section">
   <div class="section-head">
     <div class="section-badge">🔥 Trending</div>
@@ -109,10 +106,6 @@
   </div>
 </div>
 
-<!-- ========================================== -->
-<!-- [BARU] SECTION 2: KOMIK TERBARU            -->
-<!-- Tempat komik "prabowo" bakal nongol langsung -->
-<!-- ========================================== -->
 <div class="section" style="padding-top:0">
   <div class="section-head">
     <div class="section-badge">🆕 Rilis Baru</div>
@@ -152,9 +145,6 @@
   </div>
 </div>
 
-<!-- ========================================== -->
-<!-- SECTION 3: CREATOR CALL TO ACTION          -->
-<!-- ========================================== -->
 <div class="section" style="padding-top:0">
   <div class="creator-wrap">
     <div class="creator-text">
@@ -164,8 +154,8 @@
       
       <div class="creator-stats">
         <div><div class="c-stat-num" style="color: #2299DD;"><%= safeFormatViews(safeStats.totalViews) %></div><div class="c-stat-lbl">Total Views</div></div>
-        <div><div class="c-stat-num"><%= safeFormatViews(safeStats.totalKreator) %></div><div class="c-stat-lbl">Kreator</div></div>
-        <div><div class="c-stat-num"><%= safeFormatViews(safeStats.totalKomik) %></div><div class="c-stat-lbl">Komik</div></div>
+        <div><div class="c-stat-num"><%= safeStats.totalKreator %></div><div class="c-stat-lbl">Kreator</div></div>
+        <div><div class="c-stat-num"><%= safeStats.totalKomik %></div><div class="c-stat-lbl">Komik</div></div>
       </div>
       
       <div class="creator-actions">

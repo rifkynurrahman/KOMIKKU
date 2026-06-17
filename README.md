@@ -120,36 +120,38 @@ MongoDB Community Server & MongoDB Compass (Pastikan service MongoDB lokal sudah
 Clone repository & masuk ke folder proyek
 
 Bash
-git clone [https://github.com/rifkynurrahman/komikku.git](https://github.com/rifkynurrahman/komikku.git)
+git clone https://github.com/rifkynurrahman/komikku.git
 cd komikku
-Install dependencies
 
-Bash
-npm install
+2. **Install dependencies**
+   ```bash
+   npm install
 Salin file environment
+Buat file .env baru di folder paling luar proyek dengan menyalin format yang ada:
 
 Bash
 cp .env.example .env
-Isi konfigurasi pada file .env
 
-Cuplikan kode
-PORT=3000
-MONGO_URI=mongodb://127.0.0.1:27017/komikku
-JWT_SECRET=your_secret_key
-SESSION_SECRET=your_session_secret
-(Catatan: Sesuaikan nilai MONGO_URI dengan konfigurasi instansi database MongoDB lokal kamu)
+4. **Isi konfigurasi pada file `.env`**
+   Buka file `.env` yang baru dibuat, lalu sesuaikan isinya menjadi seperti ini:
+   ```env
+   PORT=3000
+   MONGODB_URI=mongodb://127.0.0.1:27017/komikku
+   SESSION_SECRET=inirahasiabangetjanganadamygtau123
+(Catatan: Sesuaikan nilai MONGODB_URI dengan konfigurasi instansi database MongoDB lokal kamu).
 
 Jalankan Seeder (Wajib untuk pertama kali)
-Karena aplikasi membutuhkan data awal (dummy) untuk memuat halaman beranda, jalankan seeder terlebih dahulu untuk mengisi database:
+Karena aplikasi membutuhkan data awal (dummy) untuk memuat halaman beranda serta akun login bawaan, jalankan kedua seeder ini di terminal secara berurutan:
 
 Bash
+# 1. Memasukkan data komik dummy ke database
 node seeder.js
-Jalankan aplikasi
 
-Bash
-# Mode Pengembangan (Development)
-npm run dev
+# 2. Memasukkan data akun admin & kreator bawaan
+node seedAdmin.js
 
-# Mode Produksi (Production)
-npm start
-Buka browser kamu dan akses halaman di: http://localhost:3000
+6. **Jalankan aplikasi**
+   ```bash
+   node app.js
+Buka Browser
+Akses halaman utama website melalui tautan berikut: http://localhost:3000

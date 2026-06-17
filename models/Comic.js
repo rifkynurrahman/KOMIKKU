@@ -7,9 +7,20 @@ const comicSchema = new mongoose.Schema({
   coverImage: { type: String },
   genres: [{ type: String }],
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  status: { type: String, default: 'Ongoing' },
   views: { type: Number, default: 0 },
-  rating: { type: Number, default: 0 },
+  
+  // 🛠️ 1. UBAH tipe rating menjadi String agar seragam dengan format ".toFixed(1)" (Contoh: "4.5")
+  rating: { type: String, default: '0.0' },
+
+  // 🛠️ 2. BARU: Array untuk menampung riwayat rating dari masing-masing user agar bisa dirata-rata
+  ratings: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      score: { type: Number, required: true }
+    }
+  ],
+
+  // (Sudah dirapikan karena sebelumnya double)
   status: { 
     type: String, 
     enum: ['Ongoing', 'Completed'], // Membatasi inputan hanya boleh 2 kata ini
@@ -22,7 +33,7 @@ const comicSchema = new mongoose.Schema({
     pages: [{ type: String }]
   }],
 
-  // 🟢 Pindahkan comments ke DALAM sini, tepat sebelum penutup skema
+  // 🟢 Comments berada di dalam sini sebelum penutup skema
   comments: [
     {
       username: { type: String, required: true },

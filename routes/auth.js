@@ -48,7 +48,7 @@ router.get('/login', (req, res) => {
 });
 
 // ============================================================
-// POST /auth/login — Handle login dengan email atau username (SUDAH DISESUAIKAN ✨)
+// POST /auth/login — Handle login dengan email atau username
 // ============================================================
 router.post('/login', async (req, res) => {
   try {
@@ -80,7 +80,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // SESUAIKAN: Menambahkan data role ke dalam session user agar lolos middleware isAdmin
     req.session.user = {
       id: user._id,
       username: user.username,
@@ -88,10 +87,9 @@ router.post('/login', async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar || null,
-      role: user.role || 'user' // 🔥 Kunci utama: Menyimpan role ke session
+      role: user.role || 'user'
     };
     
-    // Cadangan: simpan juga di root session jika dibutuhkan
     req.session.role = user.role || 'user';
     
     req.session.save((saveErr) => {
@@ -103,12 +101,11 @@ router.post('/login', async (req, res) => {
         });
       }
 
-      // SESUAIKAN: Mengirim data role kembali ke frontend login
       res.json({ 
         success: true, 
         message: 'Login berhasil! Selamat datang', 
         user: req.session.user,
-        role: user.role || 'user' // 🔥 Dikirim agar javascript di login.ejs bisa mengarahkan halaman
+        role: user.role || 'user'
       });
     });
   } catch (err) {
@@ -181,7 +178,7 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role: 'user' // Default set sebagai user biasa
+      role: 'user'
     });
     
     await newUser.save();
@@ -379,15 +376,45 @@ router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => 
 });
 
 // ============================================================
+// [BARU] POST /auth/unbookmark/:id — Hapus dari daftar bookmark
+// ============================================================
+router.post('/unbookmark/:id', async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu!' });
+    }
+
+    const comicId = req.params.id;
+    const userId = req.session.user.id;
+
+    // Menghapus item dari array bookmarks menggunakan operator $pull dari Mongoose
+    const userDb = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { bookmarks: comicId } },
+      { new: true }
+    );
+
+    if (!userDb) {
+      return res.status(404).json({ success: false, message: 'User tidak ditemukan!' });
+    }
+
+    return res.json({ success: true, message: 'Berhasil dihapus dari bookmark! 🗑️' });
+  } catch (err) {
+    console.error('Error saat menghapus bookmark:', err);
+    return res.status(500).json({ success: false, message: 'Gagal memproses data penghapusan.' });
+  }
+});
+
+// ============================================================
 // GET /auth/logout — Logout user
 // ============================================================
 router.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
+  req.session.destroy((err) => {
     if (err) {
-        return res.status(500).json({ success: false, error: 'Gagal logout' });
+      return res.status(500).json({ success: false, error: 'Gagal logout' });
     }
     res.redirect('/');
-    });
+  });
 });
 
 module.exports = router;

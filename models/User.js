@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -8,11 +9,10 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   avatar: { type: String, default: null },
   
-  // 🛡️ TAMBAHKAN FIELD ROLE INI
   role: { 
     type: String, 
-    enum: ['guest', 'creator', 'admin'], 
-    default: 'creator' 
+    enum: ['user', 'creator', 'admin'], // 
+    default: 'user' // 
   },
 
   readHistory: [{
