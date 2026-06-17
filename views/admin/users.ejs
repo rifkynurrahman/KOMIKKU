@@ -124,11 +124,11 @@
                             <td>
                                 <% if(u.role === 'admin') { %>
                                     <span class="role-badge role-admin"><%= u.role %></span>
-                                  <% } else if(u.role === 'creator') { %>
+                                <% } else if(u.role === 'creator') { %>
                                     <span class="role-badge role-creator"><%= u.role %></span>
-                                  <% } else { %>
+                                <% } else { %>
                                     <span class="role-badge role-user"><%= u.role %></span>
-                                  <% } %>
+                                <% } %>
                             </td>
                             <td>
                                 <% if(u.role !== 'admin') { %>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <title>Kelola Genre - KomikKu Admin</title>
+    <style>
+        .genre-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .genre-card {
+            background: #1a1a1e;
+            border: 1px solid rgba(63, 63, 70, 0.45);
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .genre-card strong {
+            display: block;
+            color: #f5f5f5;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .genre-card span {
+            color: #a1a1aa;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            margin-top: 24px;
+            padding: 32px;
+            text-align: center;
+            color: #71717a;
+            border: 1px dashed rgba(63, 63, 70, 0.55);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <small>SET MANUAL VIA DATABASE</small>
+                <div class="admin-brand">Admin Panel</div>
+            </div>
+
+            <div class="sidebar-menu">
+                <label>NAVBAR</label>
+                <a href="/">Beranda</a>
+                <a href="/browse">Browse</a>
+                <a href="/admin">Dashboard <span class="badge-khusus">Khusus</span></a>
+                <a href="/auth/profile">Profil Utama</a>
+
+                <label style="margin-top:20px">MANAGEMENT</label>
+                <a href="/admin/users">Kelola User</a>
+                <a href="/admin/comics">Kelola Komik</a>
+                <a href="/admin/genres" class="active">Kelola Genre</a>
+
+                <label style="margin-top:20px">AKSI</label>
+                <a href="/auth/logout" style="color: #ef4444;">Keluar</a>
+            </div>
+        </nav>
+
+        <main class="admin-main">
+            <header class="main-header">
+                <h1 style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: #ffcc00;">Daftar Genre</h1>
+                <p style="color: #a1a1aa; font-size: 14px;">Genre diambil otomatis dari semua komik yang tersimpan.</p>
+            </header>
+
+            <% if (genres && genres.length > 0) { %>
+                <div class="genre-grid">
+                    <% genres.forEach(genre => { %>
+                        <div class="genre-card">
+                            <strong><%= genre %></strong>
+                            <span>Terdaftar dari koleksi komik</span>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="empty-state">
+                    Belum ada genre yang ditemukan dari data komik.
+                </div>
+            <% } %>
+        </main>
+    </div>
+</body>
+</html>

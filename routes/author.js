@@ -66,8 +66,7 @@ const upload = multer({
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024,
-    files: 80
+    fileSize: 5 * 1024 * 1024
   }
 });
 
@@ -136,7 +135,7 @@ router.get('/', requireLogin, async (req, res) => {
 });
 
 router.post('/comics/:id/chapters', requireLogin, (req, res) => {
-  upload.array('chapterPages', 80)(req, res, async (uploadErr) => {
+  upload.array('chapterPages')(req, res, async (uploadErr) => {
     if (uploadErr) {
       return res.status(400).send(uploadErr.message || 'Gagal mengunggah gambar chapter.');
     }

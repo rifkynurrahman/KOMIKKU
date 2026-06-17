@@ -25,7 +25,33 @@ const form = document.getElementById('uploadForm');
       target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function attachDropZone(zone, input, callback) {
+    function fileKey(file) {
+      return `${file.name}-${file.size}-${file.lastModified}`;
+    }
+
+    function mergeInputFiles(input, newFiles) {
+      const dataTransfer = new DataTransfer();
+      const existingKeys = new Set();
+      const existingFiles = input.selectedChapterFiles || [];
+
+      existingFiles.forEach((file) => {
+        dataTransfer.items.add(file);
+        existingKeys.add(fileKey(file));
+      });
+
+      Array.from(newFiles || []).forEach((file) => {
+        const key = fileKey(file);
+        if (!existingKeys.has(key)) {
+          dataTransfer.items.add(file);
+          existingKeys.add(key);
+        }
+      });
+
+      input.files = dataTransfer.files;
+      input.selectedChapterFiles = Array.from(dataTransfer.files);
+    }
+
+    function attachDropZone(zone, input, callback, options = {}) {
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
         zone.addEventListener(eventName, (event) => {
           event.preventDefault();
@@ -42,7 +68,11 @@ const form = document.getElementById('uploadForm');
       });
 
       zone.addEventListener('drop', (event) => {
-        input.files = event.dataTransfer.files;
+        if (options.appendFiles) {
+          mergeInputFiles(input, event.dataTransfer.files);
+        } else {
+          input.files = event.dataTransfer.files;
+        }
         callback();
       });
     }
@@ -110,8 +140,11 @@ const form = document.getElementById('uploadForm');
       const input = item.querySelector('.chapter-pages-input');
       const removeButton = item.querySelector('.remove-chapter');
 
-      input.addEventListener('change', () => updateChapterPreview(item));
-      attachDropZone(zone, input, () => updateChapterPreview(item));
+      input.addEventListener('change', () => {
+        mergeInputFiles(input, input.files);
+        updateChapterPreview(item);
+      });
+      attachDropZone(zone, input, () => updateChapterPreview(item), { appendFiles: true });
 
       removeButton.addEventListener('click', () => {
         item.remove();

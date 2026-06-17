@@ -16,8 +16,36 @@ document.querySelectorAll('.toggle-chapter-form').forEach((button) => {
   });
 });
 
+function fileKey(file) {
+  return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+function mergeInputFiles(input, newFiles) {
+  const dataTransfer = new DataTransfer();
+  const existingKeys = new Set();
+  const existingFiles = input.selectedChapterFiles || [];
+
+  existingFiles.forEach((file) => {
+    dataTransfer.items.add(file);
+    existingKeys.add(fileKey(file));
+  });
+
+  Array.from(newFiles || []).forEach((file) => {
+    const key = fileKey(file);
+    if (!existingKeys.has(key)) {
+      dataTransfer.items.add(file);
+      existingKeys.add(key);
+    }
+  });
+
+  input.files = dataTransfer.files;
+  input.selectedChapterFiles = Array.from(dataTransfer.files);
+}
+
 document.querySelectorAll('.chapter-pages-input').forEach((input) => {
   input.addEventListener('change', () => {
+    mergeInputFiles(input, input.files);
+
     const preview = input.closest('.author-field').querySelector('.chapter-pages-preview');
     const files = Array.from(input.files || []);
 
