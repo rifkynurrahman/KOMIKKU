@@ -21,8 +21,4 @@ router.get('/comics', adminController.manageComics);
 router.post('/comics/delete/:id', adminController.deleteComic);
 router.get('/genres', adminController.manageGenres);
 
-// 5. Akses Kreator (PASTIKAN NAMA INI SAMA DENGAN CONTROLLER)
-router.get('/creators', adminController.getCreatorAccess); 
-router.post('/creators/promote/:id', adminController.promoteToCreator);
-
 module.exports = router;

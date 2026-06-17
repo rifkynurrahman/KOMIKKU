@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt');
 exports.getDashboard = async (req, res) => {
     try {
         const totalUser = await User.countDocuments();
-        // PERBAIKAN: Hitung dari koleksi Comic, bukan User
         const totalComic = await Comic.countDocuments(); 
         res.render('admin/dashboard', { 
             user: req.session.user,
@@ -21,8 +20,6 @@ exports.getDashboard = async (req, res) => {
 exports.manageUsers = async (req, res) => {
     try {
         const users = await User.find().sort({ createdAt: -1 });
-        // Password akan terkirim secara otomatis (dalam bentuk hash) 
-        // karena di skema Mongoose biasanya tidak di-exclude secara default
         res.render('admin/users', { user: req.session.user, users, currentPath: '/admin/users' });
     } catch (err) {
         res.status(500).send(err.message);
@@ -40,41 +37,15 @@ exports.deleteUser = async (req, res) => {
 
 exports.manageComics = async (req, res) => {
     try {
-        // Mengambil semua komik dan data usernya
         const comics = await Comic.find().populate('uploadedBy');
         res.render('admin/comics', { 
             user: req.session.user, 
-            comics: comics || [], // Jaga-jaga jika null, kirim array kosong
+            comics: comics || [], 
             currentPath: '/admin/comics' 
         });
     } catch (err) {
         console.error("Error Manage Comics:", err);
         res.status(500).send("Gagal memuat daftar komik: " + err.message);
-    }
-};
-
-exports.getCreatorAccess = async (req, res) => {
-    try {
-        // Mengambil semua user untuk dikelola hak aksesnya
-        const users = await User.find().sort({ role: 1 }); 
-        res.render('admin/creators', { 
-            user: req.session.user, 
-            users, 
-            currentPath: '/admin/creators' 
-        });
-    } catch (err) {
-        res.status(500).send("Gagal memuat halaman akses kreator: " + err.message);
-    }
-};
-
-exports.promoteToCreator = async (req, res) => {
-    try {
-        const { id } = req.params;
-        // Update role user menjadi 'creator'
-        await User.findByIdAndUpdate(id, { role: 'creator' });
-        res.redirect('/admin/creators?status=promoted');
-    } catch (err) {
-        res.status(500).send("Gagal mengubah role: " + err.message);
     }
 };
 

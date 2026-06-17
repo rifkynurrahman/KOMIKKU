@@ -87,10 +87,10 @@ router.post('/login', async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar || null,
-      role: user.role || 'user'
+      role: user.role || 'creator' // Default ke creator jika role kosong
     };
     
-    req.session.role = user.role || 'user';
+    req.session.role = user.role || 'creator';
     
     req.session.save((saveErr) => {
       if (saveErr) {
@@ -105,7 +105,7 @@ router.post('/login', async (req, res) => {
         success: true, 
         message: 'Login berhasil! Selamat datang', 
         user: req.session.user,
-        role: user.role || 'user'
+        role: user.role || 'creator'
       });
     });
   } catch (err) {
@@ -172,13 +172,14 @@ router.post('/register', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    // PERBAIKAN: Langsung diset ke 'creator' agar fitur akses kreator tidak diperlukan lagi
     const newUser = new User({
       firstName,
       lastName,
       username,
       email,
       password: hashedPassword,
-      role: 'user'
+      role: 'creator' 
     });
     
     await newUser.save();
@@ -206,7 +207,7 @@ router.post('/register', async (req, res) => {
 
       res.json({ 
         success: true, 
-        message: 'Registrasi berhasil! Anda sudah login otomatis.', 
+        message: 'Registrasi berhasil! Anda sudah login otomatis sebagai Kreator.', 
         user: req.session.user,
         role: newUser.role,
         redirectTo: '/'
