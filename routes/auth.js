@@ -541,5 +541,22 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ success: false, error: 'Terjadi kesalahan pada server' });
   }
 });
+// ============================================================
+// GET /auth/logout — Handle logout proses (Kompatibel dengan Vercel)
+// ============================================================
+router.get('/logout', (req, res, next) => {
+  // Menghancurkan session user
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error saat menghancurkan session logout:', err);
+      return res.status(500).send('Gagal melakukan logout.');
+    }
+    // Membersihkan cookie session di sisi browser client
+    res.clearCookie('connect.sid', { path: '/' }); 
+    
+    // Alihkan halaman kembali ke landing page / login setelah berhasil logout
+    res.redirect('/'); 
+  });
+});
 
 module.exports = router;

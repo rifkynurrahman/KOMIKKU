@@ -39,8 +39,8 @@ app.use(session({
   cookie: { 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    // Jika masih gagal login setelah deploy, ubah baris di bawah ke: secure: false
-    secure: process.env.NODE_ENV === 'production' 
+    // 🔥 UBAH BARIS INI JADI false AGAR SESTION DI VERCEL AMAN & STABIL
+    secure: false 
   }
 }));
 
