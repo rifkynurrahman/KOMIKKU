@@ -2,8 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const mongoose = require('mongoose');
-const MongoStore = require('connect-mongo'); // 1. Tambahkan ini
+const mongoose = require('mongoose'); 
+const MongoStore = require('connect-mongo').default;
 
 const Setting = require('./models/Setting');
 const app = express();
