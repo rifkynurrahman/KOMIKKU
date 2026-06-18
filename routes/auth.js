@@ -1,8 +1,10 @@
-// routes/auth.js — Authentication Routes (Login & Register)
+// routes/auth.js — Authentication Routes (Login, Register & Reset Password)
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const crypto = require('crypto'); // 🔥 TAMBAHAN: Untuk generate token acak rahasia
+const nodemailer = require('nodemailer'); // 🔥 TAMBAHAN: Untuk sistem pengiriman email
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
@@ -87,16 +89,8 @@ router.post('/login', async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar || null,
-<<<<<<< HEAD
-      role: user.role || 'creator' // ✨ Disesuaikan fallback default-nya ke 'creator'
+      role: user.role || 'creator' 
     };
-    
-    // Cadangan: simpan juga di root session jika dibutuhkan
-=======
-      role: user.role || 'creator' // Default ke creator jika role kosong
-    };
-    
->>>>>>> c2228d0694713b73c5c9436d8612874398c06cbb
     req.session.role = user.role || 'creator';
     
     req.session.save((saveErr) => {
@@ -132,7 +126,7 @@ router.get('/register', (req, res) => {
 });
 
 // ============================================================
-// POST /auth/register — Handle registrasi user baru (SUDAH DIKOREKSI ✨)
+// POST /auth/register — Handle registrasi user baru
 // ============================================================
 router.post('/register', async (req, res) => {
   try {
@@ -179,18 +173,13 @@ router.post('/register', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // PERBAIKAN: Langsung diset ke 'creator' agar fitur akses kreator tidak diperlukan lagi
     const newUser = new User({
       firstName,
       lastName,
       username,
       email,
       password: hashedPassword,
-<<<<<<< HEAD
-      role: 'creator' // 🔥 DIUBAH: Sekarang menggunakan 'creator' agar sesuai dengan enum Mongoose
-=======
       role: 'creator' 
->>>>>>> c2228d0694713b73c5c9436d8612874398c06cbb
     });
     
     await newUser.save();
@@ -230,6 +219,124 @@ router.post('/register', async (req, res) => {
       success: false, 
       error: 'Terjadi kesalahan pada server' 
     });
+  }
+});
+
+// ============================================================
+// GET /auth/forgot-password — Render halaman lupa password (Direct dari /views)
+// ============================================================
+router.get('/forgot-password', (req, res) => {
+  res.render('forgot-password', { currentPath: '/auth/forgot-password' });
+});
+
+// ============================================================
+// 🔥 [DIUBAH] POST /auth/forgot-password — Proses kirim email token reset (Aman dari Spasi & Case-Insensitive)
+// ============================================================
+router.post('/forgot-password', async (req, res) => {
+  try {
+    // Membersihkan spasi tak sengaja di awal atau akhir input email
+    const emailInput = req.body.email ? req.body.email.trim() : '';
+    
+    if (!emailInput) {
+      return res.status(400).send('Email wajib diisi.');
+    }
+
+    // Menggunakan RegExp '^...$' dengan flag 'i' agar pencarian bersifat case-insensitive
+    const user = await User.findOne({ email: new RegExp('^' + emailInput + '$', 'i') });
+    
+    if (!user) {
+      return res.send('Error: Alamat email tidak terdaftar di sistem kami.');
+    }
+
+    // Membuat token acak unik sepanjang 20 karakter hex
+    const token = crypto.randomBytes(20).toString('hex');
+
+    // Menyimpan token dan set kedaluwarsa 1 jam ke depan (3600000 ms)
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000;
+    await user.save();
+
+    // Konfigurasi mailer (Pastikan isi EMAIL_USER & EMAIL_PASS di file .env kamu)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS  
+      }
+    });
+
+    const resetUrl = `http://${req.headers.host}/auth/reset-password/${token}`;
+
+    const mailOptions = {
+      to: user.email,
+      from: process.env.EMAIL_USER,
+      subject: 'KomikKu - Permintaan Reset Password',
+      text: `Anda menerima email ini karena ada permintaan untuk mereset password akun Anda.\n\n` +
+            `Silakan klik link di bawah ini atau tempel di browser Anda untuk melanjutkan:\n\n` +
+            `${resetUrl}\n\n` +
+            `Jika Anda tidak meminta ini, abaikan saja email ini.\n`
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.send('Sukses! Link reset password telah dikirim ke email Anda. Silakan periksa inbox/spam.');
+
+  } catch (err) {
+    console.error('Error Forgot Password:', err);
+    res.status(500).send("Gagal memproses permintaan: " + err.message);
+  }
+});
+
+// ============================================================
+// GET /auth/reset-password/:token — Halaman bikin password baru (Direct dari /views)
+// ============================================================
+router.get('/reset-password/:token', async (req, res) => {
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: { $gt: Date.now() } // Memastikan waktu expired belum lewat
+    });
+
+    if (!user) {
+      return res.send('Link reset password tidak valid atau sudah kedaluwarsa.');
+    }
+
+    res.render('reset-password', { token: req.params.token, currentPath: '/auth/reset-password' });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// ============================================================
+// POST /auth/reset-password/:token — Simpan password baru ter-enkripsi
+// ============================================================
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.send('Gagal: Token tidak valid atau kedaluwarsa.');
+    }
+
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.send('Gagal: Password baru minimal harus 6 karakter.');
+    }
+
+    // Mengenangkliripsi password baru menggunakan bcrypt sesuai standar registrasi awal
+    user.password = await bcrypt.hash(password, 10);
+
+    // Hapus kembali token dari database agar tidak bisa dipakai ulang
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.send('Selamat! Password berhasil diperbarui. Silakan kembali ke halaman login.');
+  } catch (err) {
+    console.error('Error Reset Password:', err);
+    res.status(500).send(err.message);
   }
 });
 
@@ -388,7 +495,7 @@ router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => 
 });
 
 // ============================================================
-// [BARU] POST /auth/unbookmark/:id — Hapus dari daftar bookmark
+// POST /auth/unbookmark/:id — Hapus dari daftar bookmark
 // ============================================================
 router.post('/unbookmark/:id', async (req, res) => {
   try {
@@ -399,7 +506,6 @@ router.post('/unbookmark/:id', async (req, res) => {
     const comicId = req.params.id;
     const userId = req.session.user.id;
 
-    // Menghapus item dari array bookmarks menggunakan operator $pull dari Mongoose
     const userDb = await User.findByIdAndUpdate(
       userId,
       { $pull: { bookmarks: comicId } },

@@ -1,45 +1,79 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
     <title>Laporan Konten - Admin</title>
 </head>
 <body class="admin-body">
     <div class="admin-wrapper">
+        
         <nav class="admin-sidebar">
-            <div class="admin-brand">🛡️ Admin Panel</div>
+            <div class="sidebar-header">
+                <small>SET MANUAL VIA DATABASE</small>
+                <div class="admin-brand">🛡️ Admin Panel</div>
+            </div>
+            
             <div class="sidebar-menu">
-                <a href="/admin">Dashboard</a>
-                <a href="/admin/users">Kelola User</a>
-                <a href="/admin/comics">Kelola Komik</a>
-                <a href="/admin/reports" class="active">Laporan Konten</a>
-                <a href="/admin/settings">Pengaturan</a>
-                <a href="/auth/logout" style="color:red">Keluar</a>
+                <label>NAVBAR</label>
+                <a href="/"><i class="icon">🏠</i> Beranda</a>
+                <a href="/browse"><i class="icon">🧭</i> Browse</a>
+                <a href="/admin"><i class="icon">🛡️</i> Dashboard <span class="badge-khusus">Khusus</span></a>
+                <a href="/auth/profile"><i class="icon">👤</i> Profil Utama</a>
+                
+                <label style="margin-top:20px">MANAGEMENT</label>
+                <a href="/admin/users"><i class="icon">👥</i> Kelola User</a>
+                <a href="/admin/comics"><i class="icon">📚</i> Kelola Komik</a>
+                <a href="/admin/reports" class="active">🚩 Laporan Konten</a> 
+                <a href="/admin/settings">⚙️ Pengaturan Sistem</a>
+                
+                <label style="margin-top:20px">AKSI</label>
+                <a href="/auth/logout" style="color: #ef4444;"><i class="icon">🚪</i> Keluar</a>
             </div>
         </nav>
+
         <main class="admin-main">
-            <header class="main-header"><h1 style="color:#ef4444">🚩 Laporan Konten</h1></header>
-            <table class="admin-table" style="width:100%; color:white; background:#1a1a1e">
-                <thead><tr><th>Komik</th><th>Pelapor</th><th>Alasan</th><th>Status</th><th>Aksi</th></tr></thead>
-                <tbody>
-                    <% reports.forEach(r => { %>
-                    <tr style="border-bottom:1px solid #333">
-                        <td style="padding:15px"><%= r.comicId ? r.comicId.title : 'Komik Dihapus' %></td>
-                        <td>@<%= r.reporterId ? r.reporterId.username : 'Anonim' %></td>
-                        <td><%= r.reason %></td>
-                        <td><span class="role-badge"><%= r.status %></span></td>
-                        <td>
-                            <% if(r.status === 'Pending') { %>
-                                <form action="/admin/reports/resolve/<%= r._id %>" method="POST">
-                                    <button class="btn-gold" style="padding:5px 10px">Selesaikan</button>
-                                </form>
-                            <% } else { %> ✅ <% } %>
-                        </td>
-                    </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+            <header class="main-header">
+                <h1 style="color:#ef4444">🚩 Laporan Konten</h1>
+            </header>
+            
+            <div style="background: #1a1a1e; border-radius: 14px; padding: 20px; border: 1px solid rgba(63, 63, 70, 0.4); overflow-x: auto;">
+                <table class="admin-table" style="width:100%; color:white; background:#1a1a1e; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #333; text-align: left;">
+                            <th style="padding: 12px;">Komik</th>
+                            <th>Pelapor</th>
+                            <th>Alasan</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% reports.forEach(r => { %>
+                        <tr style="border-bottom:1px solid #333; transition: background 0.2s;">
+                            <td style="padding:15px"><%= r.comicId ? r.comicId.title : 'Komik Dihapus' %></td>
+                            <td>@<%= r.reporterId ? r.reporterId.username : 'Anonim' %></td>
+                            <td><%= r.reason %></td>
+                            <td><span class="role-badge" style="background: #3f3f46; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px;"><%= r.status %></span></td>
+                            <td>
+                                <% if(r.status === 'Pending') { %>
+                                    <form action="/admin/reports/resolve/<%= r._id %>" method="POST" style="margin:0;">
+                                        <button class="btn-gold" style="padding:6px 12px; font-size:13px; font-weight:700; cursor:pointer;">Selesaikan</button>
+                                    </form>
+                                <% } else { %> 
+                                    <span style="font-size: 16px;">✅</span> 
+                                <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
         </main>
+
     </div>
 </body>
 </html>

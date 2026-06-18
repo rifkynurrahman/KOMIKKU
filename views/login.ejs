@@ -53,7 +53,7 @@
         <label class="form-label">Password</label>
         <input type="password" name="password" id="password" class="form-input" placeholder="Masukkan password" required>
         <div style="text-align:right;margin-top:8px">
-          <a href="#" style="color:#2299DD;font-size:12px;font-weight:700;text-decoration:none">Lupa password?</a>
+          <a href="/auth/forgot-password" style="color:#2299DD;font-size:12px;font-weight:700;text-decoration:none">Lupa password?</a>
         </div>
       </div>
       <button type="submit" class="form-submit">Masuk →</button>
@@ -91,7 +91,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const data = await response.json();
     
     if (data.success) {
-      // 1. Pop-up Sukses Menggunakan SweetAlert2 Tema Gelap
       Swal.fire({
         icon: 'success',
         title: 'Login Berhasil!',
@@ -103,19 +102,17 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         showConfirmButton: false
       });
 
-      // SESUAIKAN: Cek role user untuk menentukan arah halaman tujuan ✨
       setTimeout(() => {
         if (data.role === 'admin') {
-          window.location.href = '/admin'; // 🔥 Jika Admin Utama, langsung buka dashboard admin!
+          window.location.href = '/admin';
         } else if (data.role === 'creator') {
-          window.location.href = '/author'; // Jika Kreator, masuk studio komik
+          window.location.href = '/author';
         } else {
-          window.location.href = '/'; // Jika User Biasa, lempar ke beranda utama
+          window.location.href = '/';
         }
       }, 2000);
 
     } else {
-      // 2. Pop-up Gagal (Kombinasi password/user salah)
       Swal.fire({
         icon: 'error',
         title: 'Akses Ditolak!',
@@ -126,7 +123,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       });
     }
   } catch (err) {
-    // 3. Pop-up Error Sistem (Masalah jaringan/server)
     Swal.fire({
       icon: 'warning',
       title: 'Terjadi Kesalahan!',
