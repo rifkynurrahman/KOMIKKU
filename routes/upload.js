@@ -1,15 +1,43 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Comic = require('../models/Comic');
 
 const router = express.Router();
 
-const uploadDir = path.join(__dirname, '..', 'foto');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// ==========================================
+// KONFIGURASI CLOUDINARY STORAGE
+// ==========================================
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    // Menentukan sub-folder dinamis di dalam Cloudinary
+    let folderName = 'komikku_covers';
+    if (file.fieldname.startsWith('chapterPages_')) {
+      folderName = 'komikku_chapters';
+    }
+    
+    return {
+      folder: folderName,
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+      public_id: `${req.session.user.id}-${Date.now()}-${Math.round(Math.random() * 1E4)}`
+    };
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // Batas 5MB per gambar
+  }
+});
 
 // MIDDLEWARE: Memastikan status login sinkron & aman
 function requireLogin(req, res, next) {
@@ -32,39 +60,17 @@ function requireLogin(req, res, next) {
   });
 }
 
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-    const filename = `${req.session.user.id}-${uniqueSuffix}${ext}`;
-    cb(null, filename);
-  }
-});
-
-const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp/;
-    const ext = path.extname(file.originalname).toLowerCase();
-
-    if (allowed.test(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Hanya file gambar (jpeg, jpg, png, webp) yang diperbolehkan'));
+// Fungsi bantu hapus file dari Cloudinary jika proses database gagal
+async function removeCloudinaryFiles(files = []) {
+  for (const file of files) {
+    if (file.filename) {
+      try {
+        await cloudinary.uploader.destroy(file.filename);
+      } catch (err) {
+        console.error('Gagal menghapus file dari Cloudinary:', err);
+      }
     }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024
   }
-});
-
-function removeUploadedFiles(files = []) {
-  files.forEach((file) => {
-    if (file.path && fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
-    }
-  });
 }
 
 router.get('/', requireLogin, (req, res) => {
@@ -84,10 +90,11 @@ router.post('/', requireLogin, (req, res) => {
     }
 
     const files = req.files || [];
+    // Pada CloudinaryStorage, URL gambar internet disimpan di file.path
     const coverFile = files.find((file) => file.fieldname === 'coverImage');
 
     if (!coverFile) {
-      removeUploadedFiles(files);
+      await removeCloudinaryFiles(files);
       return res.status(400).json({
         success: false,
         error: 'File cover image harus diunggah'
@@ -97,30 +104,24 @@ router.post('/', requireLogin, (req, res) => {
     try {
       const { title, description, author, genres, status } = req.body;
 
-      // ==========================================================================
-      // PENYESUAIAN UTAMA: NORMALISASI DATA GENRE (ANTI-BUG SINGLE DATA)
-      // ==========================================================================
-      // Mengubah string tunggal menjadi array, atau buat array kosong jika tidak ada yang dipilih
       const genreList = genres 
         ? (Array.isArray(genres) ? genres : [genres]) 
         : [];
 
-      // Validasi kelengkapan data form utama
       if (!title || !description || !author || genreList.length === 0) {
-        removeUploadedFiles(files);
+        await removeCloudinaryFiles(files);
         return res.status(400).json({
           success: false,
           error: 'Semua field komik harus diisi, termasuk minimal memilih satu genre'
         });
       }
-      // ==========================================================================
 
       const chapterKeys = Array.isArray(req.body.chapterKeys)
         ? req.body.chapterKeys
         : [req.body.chapterKeys].filter(Boolean);
 
       if (chapterKeys.length === 0) {
-        removeUploadedFiles(files);
+        await removeCloudinaryFiles(files);
         return res.status(400).json({
           success: false,
           error: 'Tambahkan minimal satu chapter'
@@ -130,9 +131,11 @@ router.post('/', requireLogin, (req, res) => {
       const chapters = chapterKeys.map((key, index) => {
         const chapterNumber = Number(req.body[`chapterNumber_${key}`] || index + 1);
         const chapterTitle = req.body[`chapterTitle_${key}`] || `Chapter ${chapterNumber}`;
+        
+        // Mengambil langsung URL aman internet (HTTPS) Cloudinary dari file.path
         const pages = files
           .filter((file) => file.fieldname === `chapterPages_${key}`)
-          .map((file) => `/foto/${file.filename}`);
+          .map((file) => file.path);
 
         return {
           chapterNumber,
@@ -142,21 +145,21 @@ router.post('/', requireLogin, (req, res) => {
       }).filter((chapter) => chapter.chapterNumber && chapter.pages.length > 0);
 
       if (chapterKeys.length > 0 && chapters.length !== chapterKeys.length) {
-        removeUploadedFiles(files);
+        await removeCloudinaryFiles(files);
         return res.status(400).json({
           success: false,
           error: 'Setiap chapter harus memiliki nomor dan minimal satu gambar halaman'
         });
       }
 
-      // Simpan dokumen baru ke database Mongoose
+      // Simpan dokumen baru ke database Mongoose menggunakan link internet Cloudinary
       const newComic = new Comic({
         title,
         author,
         synopsis: description,
-        genres: genreList.filter(Boolean), // Array terfilter bebas dari nilai null/undefined
-        status: status || 'Ongoing',       // Default ke 'Ongoing' jika input status kosong
-        coverImage: `foto/${coverFile.filename}`,
+        genres: genreList.filter(Boolean),
+        status: status || 'Ongoing',
+        coverImage: coverFile.path, // Menyimpan tautan HTTPS dari Cloudinary
         uploadedBy: req.session.user.id,
         chapters,
         views: 0
@@ -171,7 +174,7 @@ router.post('/', requireLogin, (req, res) => {
         redirectTo: `/komik/${newComic._id}`
       });
     } catch (err) {
-      removeUploadedFiles(files);
+      await removeCloudinaryFiles(files);
       console.error('Error upload komik:', err);
       res.status(500).json({
         success: false,

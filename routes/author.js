@@ -1,15 +1,38 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Comic = require('../models/Comic');
 const User = require('../models/User');
 
 const router = express.Router();
-const uploadDir = path.join(__dirname, '..', 'foto');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+
+// ==========================================
+// KONFIGURASI CLOUDINARY STORAGE
+// ==========================================
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    return {
+      folder: 'komikku_chapters', // Menyimpan halaman chapter ke folder khusus di cloud
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+      public_id: `${req.session.user.id}-chapter-${Date.now()}-${Math.round(Math.random() * 1E4)}`
+    };
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // Batasan 5MB per file halaman
+  }
+});
 
 // Helper format angka views agar ringkas (Misal: 1.2JT, 45RB)
 const formatViews = (num) => {
@@ -44,56 +67,40 @@ function requireLogin(req, res, next) {
   });
 }
 
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-    cb(null, `${req.session.user.id}-${uniqueSuffix}${ext}`);
-  }
-});
-
-const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp/;
-    const ext = path.extname(file.originalname).toLowerCase();
-
-    if (allowed.test(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Hanya file gambar (jpeg, jpg, png, webp) yang diperbolehkan'));
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024
-  }
-});
-
 function toPublicImagePath(imagePath) {
   if (!imagePath) return '';
   if (imagePath.startsWith('http')) return imagePath;
   return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
 }
 
-function deleteUploadedImage(imagePath) {
-  if (!imagePath || imagePath.startsWith('http')) return;
-
-  const normalized = imagePath.replace(/^\/+/, '');
-  if (!normalized.startsWith('foto/')) return;
-
-  const filePath = path.join(uploadDir, path.basename(normalized));
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+// 🔥 SEKARANG MENGHAPUS GAMBAR LANGSUNG DARI CLOUDINARY CLOUD
+async function deleteCloudinaryImage(imagePath) {
+  if (!imagePath || !imagePath.startsWith('http')) return;
+  
+  try {
+    // Mengekstrak Public ID unik Cloudinary dari URL gambar internet
+    // Contoh URL: https://res.cloudinary.com/.../komikku_chapters/nama_file.jpg
+    const parts = imagePath.split('/');
+    const folderAndFile = parts.slice(-2).join('/'); // 'komikku_chapters/nama_file.jpg'
+    const publicId = folderAndFile.substring(0, folderAndFile.lastIndexOf('.')); // hapus ekstensi '.jpg'
+    
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error('Gagal menghapus gambar dari Cloudinary:', err);
   }
 }
 
-function removeUploadedFiles(files = []) {
-  files.forEach((file) => {
-    if (file.path && fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
+// Fungsi bantu membersihkan file jika proses simpan gagal ditengah jalan
+async function removeCloudinaryFiles(files = []) {
+  for (const file of files) {
+    if (file.filename) {
+      try {
+        await cloudinary.uploader.destroy(file.filename);
+      } catch (err) {
+        console.error('Gagal membatalkan upload di Cloudinary:', err);
+      }
     }
-  });
+  }
 }
 
 // GET /author — Dashboard Kreator Pribadi
@@ -117,16 +124,15 @@ router.get('/', requireLogin, async (req, res) => {
     totals.topComicTitle = topComic ? topComic.title : '-';
     totals.topComicViews = topComic ? topComic.views || 0 : 0;
 
-    // FIX: Sekarang formatViews & isPublicView ikut dilempar agar view engine tidak crash
     res.render('author', {
       currentPath: '/author',
       comics,
       totals,
       user: req.session.user,
-      creator: req.session.user, // Menyelaraskan object creator untuk dashboard mandiri
+      creator: req.session.user, 
       toPublicImagePath,
-      formatViews,               // <-- INI DIA YANG MEMBUAT ERROR APPLIKASIMU HILANG
-      isPublicView: false        // Menandakan bahwa ini adalah dashboard milik sendiri
+      formatViews,              
+      isPublicView: false        
     });
   } catch (err) {
     console.error('Error author dashboard:', err);
@@ -134,6 +140,7 @@ router.get('/', requireLogin, async (req, res) => {
   }
 });
 
+// POST /author/comics/:id/chapters — Tambah Chapter Baru ke Cloudinary
 router.post('/comics/:id/chapters', requireLogin, (req, res) => {
   upload.array('chapterPages')(req, res, async (uploadErr) => {
     if (uploadErr) {
@@ -149,7 +156,7 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
       });
 
       if (!comic) {
-        removeUploadedFiles(files);
+        await removeCloudinaryFiles(files);
         return res.status(404).send('Komik tidak ditemukan atau bukan milik Anda.');
       }
 
@@ -169,27 +176,28 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
       const chapterTitle = req.body.chapterTitle || `Chapter ${chapterNumber}`;
 
       if (!chapterNumber || chapterNumber < 1) {
-        removeUploadedFiles(files);
+        await removeCloudinaryFiles(files);
         return res.status(400).send('Nomor chapter tidak valid.');
       }
 
       const duplicateChapter = comic.chapters.some((chapter) => chapter.chapterNumber === chapterNumber);
       if (duplicateChapter) {
-        removeUploadedFiles(files);
+        await removeCloudinaryFiles(files);
         return res.status(400).send('Nomor chapter sudah ada pada komik ini.');
       }
 
       comic.chapters.push({
         chapterNumber,
         title: chapterTitle,
-        pages: files.map((file) => `/foto/${file.filename}`)
+        // 🔥 AMBIL LINK SECURE URL INTERNET DARI CLOUDINARY (file.path)
+        pages: files.map((file) => file.path)
       });
 
       comic.chapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
       await comic.save();
       res.redirect('/author');
     } catch (err) {
-      removeUploadedFiles(files);
+      await removeCloudinaryFiles(files);
       console.error('Error add chapter / update status:', err);
       if (err.name === 'CastError') {
         return res.status(404).send('Komik tidak ditemukan.');
@@ -200,6 +208,7 @@ router.post('/comics/:id/chapters', requireLogin, (req, res) => {
   });
 });
 
+// POST /author/comics/:id/delete — Hapus Komik & Bersihkan Gambar di Cloudinary
 router.post('/comics/:id/delete', requireLogin, async (req, res) => {
   try {
     const comic = await Comic.findOne({
@@ -211,10 +220,13 @@ router.post('/comics/:id/delete', requireLogin, async (req, res) => {
       return res.status(404).send('Komik tidak ditemukan atau bukan milik Anda.');
     }
 
-    deleteUploadedImage(comic.coverImage);
-    comic.chapters.forEach((chapter) => {
-      chapter.pages.forEach(deleteUploadedImage);
-    });
+    // 🔥 HAPUS COVER & HALAMAN CHAPTER DARI INTERNET CLOUDINARY
+    await deleteCloudinaryImage(comic.coverImage);
+    for (const chapter of comic.chapters) {
+      for (const pageUrl of chapter.pages) {
+        await deleteCloudinaryImage(pageUrl);
+      }
+    }
 
     await User.updateMany(
       { 'readHistory.comicId': comic._id },
