@@ -1,6 +1,7 @@
 // routes/guest.js
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose'); // 🟢 BARU: Diperlukan untuk validasi & casting ObjectId
 const Comic = require('../models/Comic');
 const User = require('../models/User');
 const { GENRES } = require('../data/dummyData'); 
@@ -9,10 +10,10 @@ const { GENRES } = require('../data/dummyData');
 const formatViews = (num) => {
   if (!num) return '0';
   if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace('.0', '') + 'JT';
+    return (num / 1000000).toFixed(1) + 'JT';
   }
   if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace('.0', '') + 'RB';
+    return (num / 1000).toFixed(1) + 'RB';
   }
   return num.toString();
 };
@@ -34,7 +35,9 @@ router.get('/', async (req, res) => {
       }
     ]);
     const totalViews = viewsAggregate.length > 0 ? viewsAggregate[0].totalViews : 0;
-    const totalKreator = await Comic.distinct('author').then(authors => authors.length) || 12; 
+    
+    // 🛠️ Mengubah 'author' menjadi 'uploadedBy' agar perhitungan jumlah kreator real-time akurat
+    const totalKreator = await Comic.distinct('uploadedBy').then(authors => authors.length) || 0; 
 
     res.render('index', {
       currentPath: '/',
@@ -84,7 +87,6 @@ router.get('/browse', async (req, res) => {
 // GET /komik/:id — Detail komik (FIXED WARNING DEPRECATION & POPULATE)
 router.get('/komik/:id', async (req, res) => {
   try {
-    // 🛠️ PERBAIKAN: Mengganti { new: true } menjadi { returnDocument: 'after' } agar terminal bersih dari warning
     const comicData = await Comic.findByIdAndUpdate(
       req.params.id,
       { $inc: { views: 1 } },
@@ -220,7 +222,7 @@ router.post('/komik/:id/komentar', async (req, res) => {
   }
 });
 
-// 2. RUTE RATING (DIUBAH KE JSON RESPONSIVE)
+// 2. RUTE RATING (🛠️ DIUBAH TOTAL: SEKARANG MENGHITUNG RATA-RATA DENGAN AKURAT)
 router.post('/komik/:id/rate', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
@@ -229,17 +231,35 @@ router.post('/komik/:id/rate', async (req, res) => {
 
     const comicId = req.params.id;
     const { score } = req.body;
+    const userId = req.session.user.id || req.session.user._id;
 
     const comic = await Comic.findById(comicId);
     if (!comic) {
       return res.status(404).json({ success: false, message: 'Komik tidak ditemukan!' });
     }
 
-    // Update rating komik
-    comic.rating = parseFloat(score).toFixed(1);
+    // Pastikan array penampung sub-document ratings tersedia
+    if (!comic.ratings) comic.ratings = [];
+
+    // Cek apakah user bersangkutan sudah pernah memberikan rating di komik ini
+    const existingRatingIndex = comic.ratings.findIndex(r => r.userId && r.userId.toString() === userId.toString());
+
+    if (existingRatingIndex > -1) {
+      // Jika sudah ada, timpa skor lamanya dengan skor inputan baru
+      comic.ratings[existingRatingIndex].score = parseFloat(score);
+    } else {
+      // Jika belum ada riwayat, push data penilai baru ke dalam array
+      comic.ratings.push({ userId: userId, score: parseFloat(score) });
+    }
+
+    // Hitung akumulasi nilai rata-rata (Total Skor / Jumlah Pemberi Rating)
+    const totalScore = comic.ratings.reduce((sum, item) => sum + item.score, 0);
+    const averageRating = totalScore / comic.ratings.length;
+
+    // Masukkan ke field string utama dalam format satu angka desimal (Contoh: "4.5")
+    comic.rating = averageRating.toFixed(1);
     await comic.save();
 
-    // Kirim response data sukses ke client fetch
     return res.json({ 
       success: true, 
       message: 'Terima kasih atas rating yang kamu berikan! ⭐', 
@@ -268,7 +288,6 @@ router.post('/komik/:id/bookmark', async (req, res) => {
 
     if (!userDb.bookmarks) userDb.bookmarks = [];
 
-    // Cek duplikasi bookmark
     if (userDb.bookmarks.includes(comicId)) {
       return res.status(400).json({ success: false, message: 'Komik ini sudah ada di daftar bookmark kamu!' });
     }
@@ -283,13 +302,24 @@ router.post('/komik/:id/bookmark', async (req, res) => {
   }
 });
 
-// DETAIL KREATOR / PUBLIC VIEW
+// DETAIL KREATOR / PUBLIC VIEW (🛠️ DIUBAH LOGIKA QUERY NYA AGAR TERDITEKSI MENGGUNAKAN OBJECTID)
 router.get('/creator/:id', async (req, res) => {
     try {
         const creatorId = req.params.id;
         
         const creator = await User.findById(creatorId);
-        const comics = await Comic.find({ author: creatorId });
+        if (!creator) return res.status(404).send('Kreator tidak ditemukan');
+
+        // Cast string parameter ID dari URL menjadi Mongoose ObjectId asli agar query pencocokan .find() akurat
+        let queryId;
+        if (mongoose.Types.ObjectId.isValid(creatorId)) {
+            queryId = new mongoose.Types.ObjectId(creatorId);
+        } else {
+            queryId = creatorId;
+        }
+
+        // Ambil data komik menggunakan queryId hasil konversi
+        const comics = await Comic.find({ uploadedBy: queryId });
 
         let totalViews = 0;
         let totalChapters = 0;
@@ -330,13 +360,30 @@ router.get('/creator/:id', async (req, res) => {
             totals: totals,          
             formatViews: localFormatViews, 
             isPublicView: true,       
-            user: req.session.user || null // Diselaraskan menggunakan req.session.user demi konsistensi data
+            user: req.session.user || null 
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Error pada halaman creator public view:", error);
         res.status(500).send("Server Error");
     }
+});
+
+const Report = require('../models/Report');
+
+// Endpoint User melapor komik
+router.post('/komik/:id/report', async (req, res) => {
+  if (!req.session.user) return res.json({ success: false, message: 'Harus login dulu!' });
+  try {
+    await Report.create({
+      comicId: req.params.id,
+      reporterId: req.session.user.id,
+      reason: req.body.reason
+    });
+    res.json({ success: true, message: 'Laporan kamu sudah diterima admin.' });
+  } catch (err) {
+    res.json({ success: false, message: 'Gagal mengirim laporan.' });
+  }
 });
 
 module.exports = router;

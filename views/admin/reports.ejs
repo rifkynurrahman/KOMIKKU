@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/admin.css">
+    <title>Laporan Konten - Admin</title>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <nav class="admin-sidebar">
+            <div class="admin-brand">🛡️ Admin Panel</div>
+            <div class="sidebar-menu">
+                <a href="/admin">Dashboard</a>
+                <a href="/admin/users">Kelola User</a>
+                <a href="/admin/comics">Kelola Komik</a>
+                <a href="/admin/reports" class="active">Laporan Konten</a>
+                <a href="/admin/settings">Pengaturan</a>
+                <a href="/auth/logout" style="color:red">Keluar</a>
+            </div>
+        </nav>
+        <main class="admin-main">
+            <header class="main-header"><h1 style="color:#ef4444">🚩 Laporan Konten</h1></header>
+            <table class="admin-table" style="width:100%; color:white; background:#1a1a1e">
+                <thead><tr><th>Komik</th><th>Pelapor</th><th>Alasan</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody>
+                    <% reports.forEach(r => { %>
+                    <tr style="border-bottom:1px solid #333">
+                        <td style="padding:15px"><%= r.comicId ? r.comicId.title : 'Komik Dihapus' %></td>
+                        <td>@<%= r.reporterId ? r.reporterId.username : 'Anonim' %></td>
+                        <td><%= r.reason %></td>
+                        <td><span class="role-badge"><%= r.status %></span></td>
+                        <td>
+                            <% if(r.status === 'Pending') { %>
+                                <form action="/admin/reports/resolve/<%= r._id %>" method="POST">
+                                    <button class="btn-gold" style="padding:5px 10px">Selesaikan</button>
+                                </form>
+                            <% } else { %> ✅ <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </main>
+    </div>
+</body>
+</html>

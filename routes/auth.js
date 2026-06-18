@@ -80,7 +80,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // SESUAIKAN: Menambahkan data role ke dalam session user agar lolos middleware isAdmin
     req.session.user = {
       id: user._id,
       username: user.username,
@@ -88,10 +87,16 @@ router.post('/login', async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar || null,
+<<<<<<< HEAD
       role: user.role || 'creator' // ✨ Disesuaikan fallback default-nya ke 'creator'
     };
     
     // Cadangan: simpan juga di root session jika dibutuhkan
+=======
+      role: user.role || 'creator' // Default ke creator jika role kosong
+    };
+    
+>>>>>>> c2228d0694713b73c5c9436d8612874398c06cbb
     req.session.role = user.role || 'creator';
     
     req.session.save((saveErr) => {
@@ -103,7 +108,6 @@ router.post('/login', async (req, res) => {
         });
       }
 
-      // SESUAIKAN: Mengirim data role kembali ke frontend login
       res.json({ 
         success: true, 
         message: 'Login berhasil! Selamat datang', 
@@ -175,13 +179,18 @@ router.post('/register', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    // PERBAIKAN: Langsung diset ke 'creator' agar fitur akses kreator tidak diperlukan lagi
     const newUser = new User({
       firstName,
       lastName,
       username,
       email,
       password: hashedPassword,
+<<<<<<< HEAD
       role: 'creator' // 🔥 DIUBAH: Sekarang menggunakan 'creator' agar sesuai dengan enum Mongoose
+=======
+      role: 'creator' 
+>>>>>>> c2228d0694713b73c5c9436d8612874398c06cbb
     });
     
     await newUser.save();
@@ -209,7 +218,7 @@ router.post('/register', async (req, res) => {
 
       res.json({ 
         success: true, 
-        message: 'Registrasi berhasil! Anda sudah login otomatis.', 
+        message: 'Registrasi berhasil! Anda sudah login otomatis sebagai Kreator.', 
         user: req.session.user,
         role: newUser.role,
         redirectTo: '/'
@@ -379,15 +388,45 @@ router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => 
 });
 
 // ============================================================
+// [BARU] POST /auth/unbookmark/:id — Hapus dari daftar bookmark
+// ============================================================
+router.post('/unbookmark/:id', async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu!' });
+    }
+
+    const comicId = req.params.id;
+    const userId = req.session.user.id;
+
+    // Menghapus item dari array bookmarks menggunakan operator $pull dari Mongoose
+    const userDb = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { bookmarks: comicId } },
+      { new: true }
+    );
+
+    if (!userDb) {
+      return res.status(404).json({ success: false, message: 'User tidak ditemukan!' });
+    }
+
+    return res.json({ success: true, message: 'Berhasil dihapus dari bookmark! 🗑️' });
+  } catch (err) {
+    console.error('Error saat menghapus bookmark:', err);
+    return res.status(500).json({ success: false, message: 'Gagal memproses data penghapusan.' });
+  }
+});
+
+// ============================================================
 // GET /auth/logout — Logout user
 // ============================================================
 router.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
+  req.session.destroy((err) => {
     if (err) {
-        return res.status(500).json({ success: false, error: 'Gagal logout' });
+      return res.status(500).json({ success: false, error: 'Gagal logout' });
     }
     res.redirect('/');
-    });
+  });
 });
 
 module.exports = router;

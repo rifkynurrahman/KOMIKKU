@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/admin.css">
+    <title>Pengaturan - Admin</title>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <nav class="admin-sidebar">
+            <div class="admin-brand">🛡️ Admin Panel</div>
+            <div class="sidebar-menu">
+                <a href="/admin">Dashboard</a>
+                <a href="/admin/users">Kelola User</a>
+                <a href="/admin/comics">Kelola Komik</a>
+                <a href="/admin/reports">Laporan Konten</a>
+                <a href="/admin/settings" class="active">Pengaturan</a>
+            </div>
+        </nav>
+        <main class="admin-main">
+            <header class="main-header"><h1>⚙️ Pengaturan Sistem</h1></header>
+            <section class="internal-profile">
+                <form action="/admin/settings/update" method="POST" class="admin-form">
+                    <div class="form-group"><label>Nama Situs</label><input type="text" name="siteName" value="<%= settings.siteName %>"></div>
+                    <div class="form-group"><label>Email Kontak</label><input type="email" name="contactEmail" value="<%= settings.contactEmail %>"></div>
+                    <div class="form-group"><label>Mode Maintenance</label>
+                        <select name="maintenanceMode" style="width:100%; padding:10px; background:#121214; color:white; border-radius:10px">
+                            <option value="false" <%= !settings.maintenanceMode ? 'selected' : '' %>>Normal (Online)</option>
+                            <option value="true" <%= settings.maintenanceMode ? 'selected' : '' %>>Maintenance (Offline)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-gold">Update Pengaturan</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

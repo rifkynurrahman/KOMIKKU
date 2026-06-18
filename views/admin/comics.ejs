@@ -7,11 +7,13 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
     <title>Kelola Komik - Admin Panel</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="admin-body">
     <div class="admin-wrapper">
         
-        <!-- SIDEBAR (Menggantikan include yang error) -->
         <nav class="admin-sidebar">
             <div class="sidebar-header">
                 <small>SET MANUAL VIA DATABASE</small>
@@ -28,7 +30,6 @@
                 <label style="margin-top:20px">MANAGEMENT</label>
                 <a href="/admin/users"><i class="icon">👥</i> Kelola User</a>
                 <a href="/admin/comics" class="active"><i class="icon">📚</i> Kelola Komik</a>
-                <a href="/admin/creators"><i class="icon">✍️</i> Akses Kreator</a>
                 
                 <label style="margin-top:20px">AKSI</label>
                 <a href="/auth/logout" style="color: #ef4444;"><i class="icon">🚪</i> Keluar</a>
@@ -68,11 +69,11 @@
                                 <% } %>
                             </td>
                             <td>
-                                <div style="display:flex; gap:15px">
+                                <div style="display:flex; gap:15px; align-items: center;">
                                     <a href="/komik/<%= c._id %>" target="_blank" style="color:#ffcc00; text-decoration:none; font-size:13px; font-weight: bold;">Buka</a>
                                     
-                                    <form action="/admin/comics/delete/<%= c._id %>" method="POST" onsubmit="return confirm('Hapus komik ini secara permanen?')">
-                                        <button type="submit" style="color:#ff4444; background:none; border:none; cursor:pointer; font-size:13px; font-family:inherit; font-weight:bold">Hapus</button>
+                                    <form id="form-delete-comic-<%= c._id %>" action="/admin/comics/delete/<%= c._id %>" method="POST" style="margin:0;">
+                                        <button type="button" class="btn-delete-comic" data-id="<%= c._id %>" data-title="<%= c.title %>" style="color:#ff4444; background:none; border:none; cursor:pointer; font-size:13px; font-family:inherit; font-weight:bold; padding:0;">Hapus</button>
                                     </form>
                                 </div>
                             </td>
@@ -87,5 +88,33 @@
             </table>
         </main>
     </div>
+
+    <script>
+        document.querySelectorAll('.btn-delete-comic').forEach(button => {
+            button.addEventListener('click', function() {
+                const comicId = this.getAttribute('data-id');
+                const comicTitle = this.getAttribute('data-title');
+                const targetForm = document.getElementById(`form-delete-comic-${comicId}`);
+
+                Swal.fire({
+                    title: 'Hapus Komik?',
+                    text: `Komik berjudul "${comicTitle}" beserta seluruh isi chapternya akan dihapus secara permanen dari server!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ff4444',
+                    cancelButtonColor: '#4e4e4e',
+                    confirmButtonText: 'Ya, Hapus Permanen!',
+                    cancelButtonText: 'Batal',
+                    background: '#1a1a1e',
+                    color: '#f5f5f5'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jalankan submit form POST secara aman lewat program
+                        targetForm.submit();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
