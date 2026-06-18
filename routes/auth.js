@@ -495,44 +495,51 @@ router.post('/profile/edit', uploadAvatar.single('avatar'), async (req, res) => 
 });
 
 // ============================================================
-// POST /auth/unbookmark/:id — Hapus dari daftar bookmark
+// POST /auth/login — Handle login dengan perbaikan session
 // ============================================================
-router.post('/unbookmark/:id', async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: 'Harus login terlebih dahulu!' });
+    const { emailOrUsername, password } = req.body;
+    
+    if (!emailOrUsername || !password) {
+      return res.status(400).json({ success: false, error: 'Email/Username dan password harus diisi' });
     }
-
-    const comicId = req.params.id;
-    const userId = req.session.user.id;
-
-    const userDb = await User.findByIdAndUpdate(
-      userId,
-      { $pull: { bookmarks: comicId } },
-      { new: true }
-    );
-
-    if (!userDb) {
-      return res.status(404).json({ success: false, message: 'User tidak ditemukan!' });
+    
+    const user = await User.findOne({ 
+      $or: [{ email: emailOrUsername }, { username: emailOrUsername }]
+    });
+    
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ success: false, error: 'Email/Username atau password salah' });
     }
+    
+    // 🔥 PENTING: Regenerate session agar aman & pastikan session baru
+    req.session.regenerate((err) => {
+      if (err) return res.status(500).json({ success: false, error: 'Gagal mereset sesi' });
 
-    return res.json({ success: true, message: 'Berhasil dihapus dari bookmark! 🗑️' });
+      req.session.user = {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar || null,
+        role: user.role || 'creator' 
+      };
+      
+      // 🔥 PENTING: Wajib menunggu save selesai sebelum redirect/response
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('Error Save Session:', saveErr);
+          return res.status(500).json({ success: false, error: 'Gagal menyimpan sesi' });
+        }
+        res.json({ success: true, message: 'Login berhasil!', role: user.role });
+      });
+    });
   } catch (err) {
-    console.error('Error saat menghapus bookmark:', err);
-    return res.status(500).json({ success: false, message: 'Gagal memproses data penghapusan.' });
+    console.error('Error Login:', err);
+    res.status(500).json({ success: false, error: 'Terjadi kesalahan pada server' });
   }
-});
-
-// ============================================================
-// GET /auth/logout — Logout user
-// ============================================================
-router.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ success: false, error: 'Gagal logout' });
-    }
-    res.redirect('/');
-  });
 });
 
 module.exports = router;

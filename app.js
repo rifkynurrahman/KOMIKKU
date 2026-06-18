@@ -3,25 +3,26 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const mongoose = require('mongoose');
-const MongoStore = require('connect-mongo').default;
+// PERUBAHAN: Menghapus .default agar kompatibel dengan versi terbaru
+const MongoStore = require('connect-mongo');
 
 const Setting = require('./models/Setting');
 const app = express();
 
 // ==========================================
-// 1. KONEKSI DATABASE (DENGAN OPTIMASI TIMEOUT)
+// 1. KONEKSI DATABASE
 // ==========================================
 const dbURI = process.env.MONGODB_URI;
-
-// Tambahkan konfigurasi agar koneksi lebih sabar menunggu
 const mongooseOptions = {
-  serverSelectionTimeoutMS: 20000, // Menunggu 20 detik sebelum menyerah
-  socketTimeoutMS: 45000,          // Menunggu 45 detik untuk respon socket
+  serverSelectionTimeoutMS: 20000,
+  socketTimeoutMS: 45000,
 };
 
 mongoose.connect(dbURI, mongooseOptions)
   .then(() => console.log('✅ Berhasil terhubung ke MongoDB!'))
   .catch((err) => console.error('❌ Gagal terhubung ke MongoDB:', err));
+
+app.set('trust proxy', 1);
 
 // ==========================================
 // 2. MIDDLEWARE SESSION
@@ -33,18 +34,17 @@ app.use(session({
   store: MongoStore.create({
     mongoUrl: dbURI,
     collectionName: 'sessions',
-    // Opsional: tambahkan touchAfter agar tidak terlalu sering update DB
     touchAfter: 24 * 3600 
   }),
   cookie: { 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    // Gunakan secure: true hanya jika sudah pakai HTTPS
+    // Jika masih gagal login setelah deploy, ubah baris di bawah ke: secure: false
     secure: process.env.NODE_ENV === 'production' 
   }
 }));
 
-// ... (sisanya tetap sama)
+// ... (sisanya tidak berubah)
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -71,7 +71,7 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// ... (Routes)
+// ... (Routes tetap sama)
 app.use('/', require('./routes/guest'));
 app.use('/auth', require('./routes/auth'));
 app.use('/upload', require('./routes/upload'));
