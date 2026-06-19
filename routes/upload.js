@@ -73,6 +73,16 @@ async function removeCloudinaryFiles(files = []) {
   }
 }
 
+// Fungsi pembantu untuk memvalidasi dan memperbaiki format URL Cloudinary
+function fixCloudinaryUrl(url) {
+  if (!url) return '';
+  // Mengatasi bug jika string dimulai dengan https:/ tanpa double-slash
+  if (url.startsWith('https:/') && !url.startsWith('https://')) {
+    return url.replace('https:/', 'https://');
+  }
+  return url;
+}
+
 router.get('/', requireLogin, (req, res) => {
   res.render('upload', {
     currentPath: '/upload',
@@ -90,7 +100,6 @@ router.post('/', requireLogin, (req, res) => {
     }
 
     const files = req.files || [];
-    // Pada CloudinaryStorage, URL gambar internet disimpan di file.path
     const coverFile = files.find((file) => file.fieldname === 'coverImage');
 
     if (!coverFile) {
@@ -132,10 +141,10 @@ router.post('/', requireLogin, (req, res) => {
         const chapterNumber = Number(req.body[`chapterNumber_${key}`] || index + 1);
         const chapterTitle = req.body[`chapterTitle_${key}`] || `Chapter ${chapterNumber}`;
         
-        // Mengambil langsung URL aman internet (HTTPS) Cloudinary dari file.path
+        // Membersihkan URL setiap halaman komik menggunakan fungsi fixCloudinaryUrl
         const pages = files
           .filter((file) => file.fieldname === `chapterPages_${key}`)
-          .map((file) => file.path);
+          .map((file) => fixCloudinaryUrl(file.path));
 
         return {
           chapterNumber,
@@ -152,14 +161,14 @@ router.post('/', requireLogin, (req, res) => {
         });
       }
 
-      // Simpan dokumen baru ke database Mongoose menggunakan link internet Cloudinary
+      // Simpan dokumen baru ke database Mongoose dengan URL yang sudah divalidasi
       const newComic = new Comic({
         title,
         author,
         synopsis: description,
         genres: genreList.filter(Boolean),
         status: status || 'Ongoing',
-        coverImage: coverFile.path, // Menyimpan tautan HTTPS dari Cloudinary
+        coverImage: fixCloudinaryUrl(coverFile.path), // Mengamankan format URL cover
         uploadedBy: req.session.user.id,
         chapters,
         views: 0
