@@ -47,7 +47,7 @@
     <% comics.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="/<%= k.coverImage %>" alt="<%= k.title %>">
+        <img src="<%= k.coverImage %>" alt="<%= k.title %>">
         <% if(k.badge) { %><span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span><% } %>
       </div>
       <div class="info">
@@ -55,7 +55,7 @@
         <div class="comic-title"><%= k.title %></div>
         
         <div class="comic-ch">
-          Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
+          Ch.<%= k.chapters && k.chapters.length > 0 ? (k.chapters[k.chapters.length - 1].chapterNumber || k.chapters[k.chapters.length - 1].number) : '1' %> 
           · <%= k.status %>
         </div>
         
