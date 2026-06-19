@@ -68,7 +68,7 @@
   <div class="hero-right">
     <% safeTrending.slice(0,5).forEach((k, i) => { %>
     <a href="/komik/<%= k._id %>" class="hero-cover-slot" <%= i === 0 ? 'style=grid-row:span\u00202;' : '' %>>
-      <img src="/<%= k.coverImage %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+      <img src="<%= k.coverImage %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
     </a>
     <% }) %>
   </div>
@@ -84,7 +84,7 @@
     <% safeTrending.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="/<%= k.coverImage %>" alt="<%= k.title %>">
+        <img src="<%= k.coverImage %>" alt="<%= k.title %>">
         <% if(k.badge) { %><span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span><% } %>
       </div>
       <div class="info">
@@ -116,7 +116,7 @@
     <% safeTerbaru.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="/<%= k.coverImage %>" alt="<%= k.title %>">
+        <img src="<%= k.coverImage %>" alt="<%= k.title %>">
         <% if(k.badge) { %>
           <span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span>
         <% } else if(k.status === 'Ongoing') { %>

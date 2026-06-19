@@ -9,8 +9,9 @@
 <link rel="stylesheet" href="/css/style.css">
 <style>
 .detail-hero{
+  /* ✨ PERBAIKAN 1: Menghapus "/" sebelum <%= comic.coverImage %> di url css */
   background:linear-gradient(to bottom, rgba(24,24,27,0) 0%, #18181B 100%),
-              url('/<%= comic.coverImage %>') center/cover no-repeat;
+              url('<%= comic.coverImage %>') center/cover no-repeat;
   min-height:320px;display:flex;align-items:flex-end;
 }
 .detail-hero-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 48px 40px;display:flex;gap:36px;align-items:flex-end}
@@ -131,7 +132,7 @@
 
 <div class="detail-hero">
   <div class="detail-hero-inner">
-    <div class="detail-cover"><img src="/<%= comic.coverImage %>" alt="<%= comic.title %>"></div>
+    <div class="detail-cover"><img src="<%= comic.coverImage %>" alt="<%= comic.title %>"></div>
     <div class="detail-meta">
       <% if(comic.badge) { %><span class="card-badge badge-<%= comic.badge.toLowerCase() %>" style="margin-bottom:10px;display:inline-block"><%= comic.badge %></span><% } %>
       <div class="detail-title"><%= comic.title %></div>
@@ -185,9 +186,9 @@
       <div class="chapter-list">
         <% if(comic.chapters && comic.chapters.length > 0) { %>
           <% comic.chapters.forEach(ch => { %>
-          <a href="/komik/<%= comic._id %>/baca/<%= ch.number %>" class="chapter-item">
+          <a href="/komik/<%= comic._id %>/baca/<%= ch.chapterNumber || ch.number %>" class="chapter-item">
             <div>
-              <div class="ch-num">Chapter <%= ch.number %></div>
+              <div class="ch-num">Chapter <%= ch.chapterNumber || ch.number %></div>
               <div class="ch-title"><%= ch.title %></div>
             </div>
             <div class="ch-date"><%= comic.status %></div>
@@ -248,12 +249,12 @@
           <% if(locals.similar && similar.length > 0) { %>
             <% similar.forEach(s => { %>
             <a href="/komik/<%= s._id %>" class="similar-item">
-              <div class="similar-cover"><img src="/<%= s.coverImage %>" alt="<%= s.title %>"></div>
+              <div class="similar-cover"><img src="<%= s.coverImage %>" alt="<%= s.title %>"></div>
               <div class="similar-info">
                 <div class="s-title"><%= s.title %></div>
                 <div class="s-ch">
                   <%= s.genres && s.genres.length > 0 ? s.genres[0] : 'Umum' %> 
-                  · Ch.<%= s.chapters && s.chapters.length > 0 ? s.chapters[s.chapters.length - 1].number : '1' %>
+                  · Ch.<%= s.chapters && s.chapters.length > 0 ? (s.chapters[s.chapters.length - 1].chapterNumber || s.chapters[s.chapters.length - 1].number) : '1' %>
                 </div>
               </div>
             </a>
@@ -400,7 +401,6 @@ if (commentForm) {
   });
 }
 
-// --- LOGIC AJAX: LAPOR KONTEN ---
 async function handleReport() {
   const { value: reason } = await Swal.fire({
     title: 'Laporkan Komik',
