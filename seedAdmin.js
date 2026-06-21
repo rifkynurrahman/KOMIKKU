@@ -27,7 +27,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/komikku')
         await adminBaru.save();
 
         console.log('=========================================');
-        console.log('✅ AKUN ADMIN BERHASIL DIBUAT!');
+        console.log('✅ AKUN ADMIN BERHASIL DIBUAT! 100%');
         console.log('Email   : admin@komikku.com');
         console.log('Password: admin12345');
         console.log('=========================================');
