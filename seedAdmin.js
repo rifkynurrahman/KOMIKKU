@@ -1,7 +1,7 @@
 // seedAdmin.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const User = require('./models/User'); // Pastikan path ke model User sudah benar
+const User = require('./models/User'); 
 
 // Koneksi ke Database
 mongoose.connect('mongodb://127.0.0.1:27017/komikku')
