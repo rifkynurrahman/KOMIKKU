@@ -36,6 +36,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/komikku')
         process.exit();
     })
     .catch(err => {
-        console.error('❌ Gagal membuat admin:', err);
+        console.error('❌ eror membuat admin:', err);
         process.exit();
     });
