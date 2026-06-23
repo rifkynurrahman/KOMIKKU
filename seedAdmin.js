@@ -21,7 +21,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/komikku')
             username: 'admin_komikku',
             email: 'admin@komikku.com',
             password: hashedPassword,
-            role: 'admin' // <--- DIKUNCI SEBAGAI ADMIN
+            role: 'admin' 
         });
 
         await adminBaru.save();
