@@ -8,11 +8,11 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel="stylesheet" href="/css/style.css">
 <style>
+/* Penanganan Background Hero secara dinamis */
 .detail-hero{
-  /* ✨ PERBAIKAN: Jaring pengaman gambar background hero agar sinkron lokal & API */
-  background:linear-gradient(to bottom, rgba(24,24,27,0) 0%, #18181B 100%),
-              url('<%= comic.coverImage || comic.image %>') center/cover no-repeat;
-  min-height:320px;display:flex;align-items:flex-end;
+  background: linear-gradient(to bottom, rgba(24,24,27,0) 0%, #18181B 100%),
+              url('<%= typeof comic.image === "object" ? (comic.image.jpg?.large_image_url || comic.image.jpg?.image_url) : (comic.coverImage || comic.image) %>') center/cover no-repeat;
+  min-height:320px; display:flex; align-items:flex-end;
 }
 .detail-hero-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 48px 40px;display:flex;gap:36px;align-items:flex-end}
 .detail-cover{width:160px;height:220px;flex-shrink:0;border-radius:12px;overflow:hidden;border:3px solid #2299DD;box-shadow:0 8px 32px rgba(0,0,0,.6)}
@@ -78,7 +78,7 @@
 
 .sidebar-sticky-wrapper {
   position: sticky;
-  top: 95px;      
+  top: 95px;       
   margin-top: 55px; 
 }
 
@@ -133,7 +133,17 @@
 <div class="detail-hero">
   <div class="detail-hero-inner">
     <div class="detail-cover">
-      <img src="<%= comic.coverImage || comic.image %>" alt="<%= comic.title %>" onerror="this.src='/img/no-cover.jpg'">
+      <%   
+        let finalCover = '/img/no-cover.jpg';
+        if (comic.image && typeof comic.image === 'object') {
+          finalCover = comic.image.jpg?.large_image_url || comic.image.jpg?.image_url || finalCover;
+        } else if (comic.coverImage) {
+          finalCover = comic.coverImage;
+        } else if (typeof comic.image === 'string') {
+          finalCover = comic.image;
+        }
+      %>
+      <img src="<%= finalCover %>" alt="<%= comic.title %>" onerror="this.src='/img/no-cover.jpg'">
     </div>
     <div class="detail-meta">
       <% if(comic.badge) { %><span class="card-badge badge-<%= comic.badge.toLowerCase() %>" style="margin-bottom:10px;display:inline-block"><%= comic.badge %></span><% } %>
@@ -141,13 +151,13 @@
       <div class="detail-tags">
         <% if(comic.genres && comic.genres.length > 0) { %>
           <% comic.genres.forEach(g => { %>
-            <span class="detail-tag"><%= g %></span>
+            <span class="detail-tag"><%= typeof g === 'object' ? g.name : g %></span>
           <% }) %>
         <% } %>
-        <span class="detail-tag"><%= comic.status || 'Ongoing' %></span>
+        <span class="detail-tag"><%= comic.status || 'Unknown' %></span>
       </div>
       <div class="detail-stats">
-        <div>👁 <span><%= formatViews(comic.views) %></span> Views</div>
+        <div>👁 <span><%= typeof formatViews === 'function' ? formatViews(comic.views) : (comic.views || 0) %></span> Views</div>
         <div>⭐ <span id="rating-value-display"><%= comic.rating || '0.0' %></span> Rating</div>
         <div>📖 <span><%= comic.chapters ? comic.chapters.length : 0 %></span> Chapter</div>
         <div>
@@ -161,7 +171,7 @@
               <%= displayName %>
             </a>
           <% } else { %>
-            <span><%= comic.author || (comic.isFromApi ? 'MangaDex Team' : 'Anonim') %></span>
+            <span><%= (comic.authors && comic.authors.length > 0) ? comic.authors[0].name : (comic.author || 'Anonim') %></span>
           <% } %>
         </div>
       </div>
@@ -182,37 +192,21 @@
           <div style="font-family:'Bangers',cursive;font-size:24px;letter-spacing:1px">Daftar Chapter</div>
           <div style="font-size:12px;color:#737373"><%= comic.chapters ? comic.chapters.length : 0 %> chapter tersedia</div>
         </div>
-        
-        <% if (comic.chapters && comic.chapters.length > 0) { %>
-          <% if (comic.isFromApi) { %>
-            <% const firstCh = comic.chapters[comic.chapters.length - 1]; %>
-            <a href="/komik/<%= comic._id %>/baca/<%= firstCh.id %>?num=<%= firstCh.chapterNumber %>&title=<%= encodeURIComponent(firstCh.title) %>&comicTitle=<%= encodeURIComponent(comic.title) %>" class="btn btn-primary" style="padding:10px 24px">Baca Chapter 1</a>
-          <% } else { %>
-            <a href="/komik/<%= comic._id %>/baca/1" class="btn btn-primary" style="padding:10px 24px">Baca Chapter 1</a>
-          <% } %>
+        <% if(comic.chapters && comic.chapters.length > 0) { %>
+          <a href="/komik/<%= comic._id %>/baca/<%= comic.chapters[0].chapterNumber || comic.chapters[0].number || 1 %>" class="btn btn-primary" style="padding:10px 24px">Baca Chapter 1</a>
         <% } %>
       </div>
 
       <div class="chapter-list">
         <% if(comic.chapters && comic.chapters.length > 0) { %>
           <% comic.chapters.forEach(ch => { %>
-            <% if (comic.isFromApi) { %>
-              <a href="/komik/<%= comic._id %>/baca/<%= ch.id %>?num=<%= ch.chapterNumber %>&title=<%= encodeURIComponent(ch.title) %>&comicTitle=<%= encodeURIComponent(comic.title) %>" class="chapter-item">
-                <div>
-                  <div class="ch-num">Chapter <%= ch.chapterNumber %></div>
-                  <div class="ch-title"><%= ch.title %></div>
-                </div>
-                <div class="ch-date">MangaDex API</div>
-              </a>
-            <% } else { %>
-              <a href="/komik/<%= comic._id %>/baca/<%= ch.chapterNumber || ch.number %>" class="chapter-item">
-                <div>
-                  <div class="ch-num">Chapter <%= ch.chapterNumber || ch.number %></div>
-                  <div class="ch-title"><%= ch.title %></div>
-                </div>
-                <div class="ch-date"><%= comic.status || 'Ongoing' %></div>
-              </a>
-            <% } %>
+          <a href="/komik/<%= comic._id %>/baca/<%= ch.chapterNumber || ch.number %>" class="chapter-item">
+            <div>
+              <div class="ch-num">Chapter <%= ch.chapterNumber || ch.number %></div>
+              <div class="ch-title"><%= ch.title || 'No Title' %></div>
+            </div>
+            <div class="ch-date"><%= comic.status || 'Available' %></div>
+          </a>
           <% }) %>
         <% } else { %>
           <p style="color:#737373; font-size: 14px;">Belum ada chapter dirilis.</p>
@@ -262,15 +256,10 @@
           </div>
         <% } %>
 
-        <% if (comic.chapters && comic.chapters.length > 0) { %>
-          <% if (comic.isFromApi) { %>
-            <% const firstCh = comic.chapters[comic.chapters.length - 1]; %>
-            <a href="/komik/<%= comic._id %>/baca/<%= firstCh.id %>?num=<%= firstCh.chapterNumber %>&title=<%= encodeURIComponent(firstCh.title) %>&comicTitle=<%= encodeURIComponent(comic.title) %>" class="start-read-btn" style="display:block;margin-bottom:20px">▶ Mulai Baca</a>
-          <% } else { %>
-            <a href="/komik/<%= comic._id %>/baca/1" class="start-read-btn" style="display:block;margin-bottom:20px">▶ Mulai Baca</a>
-          <% } %>
+        <% if(comic.chapters && comic.chapters.length > 0) { %>
+          <a href="/komik/<%= comic._id %>/baca/<%= comic.chapters[0].chapterNumber || comic.chapters[0].number || 1 %>" class="start-read-btn" style="display:block;margin-bottom:20px">▶ Mulai Baca</a>
         <% } else { %>
-          <button class="start-read-btn" style="display:block;margin-bottom:20px;background:#3f3f46;cursor:not-allowed;" disabled>Belum Ada Chapter</button>
+          <a href="#" class="start-read-btn" style="display:block;margin-bottom:20px;background:#3f3f46;pointer-events:none;">▶ Belum Ada Chapter</a>
         <% } %>
 
         <div class="sidebar-card">
@@ -278,11 +267,23 @@
           <% if(locals.similar && similar.length > 0) { %>
             <% similar.forEach(s => { %>
             <a href="/komik/<%= s._id %>" class="similar-item">
-              <div class="similar-cover"><img src="<%= s.coverImage || s.image %>" alt="<%= s.title %>" onerror="this.src='/img/no-cover.jpg'"></div>
+              <div class="similar-cover">
+                <% 
+                  let simCover = '/img/no-cover.jpg';
+                  if (s.image && typeof s.image === 'object') {
+                    simCover = s.image.jpg?.image_url || simCover;
+                  } else if (s.coverImage) {
+                    simCover = s.coverImage;
+                  } else if (typeof s.image === 'string') {
+                    simCover = s.image;
+                  }
+                %>
+                <img src="<%= simCover %>" alt="<%= s.title %>" onerror="this.src='/img/no-cover.jpg'">
+              </div>
               <div class="similar-info">
                 <div class="s-title"><%= s.title %></div>
                 <div class="s-ch">
-                  <%= s.genres && s.genres.length > 0 ? s.genres[0] : 'Umum' %> 
+                  <%= s.genres && s.genres.length > 0 ? (typeof s.genres[0] === 'object' ? s.genres[0].name : s.genres[0]) : 'Umum' %> 
                   · Ch.<%= s.chapters && s.chapters.length > 0 ? (s.chapters[s.chapters.length - 1].chapterNumber || s.chapters[s.chapters.length - 1].number) : '1' %>
                 </div>
               </div>
@@ -329,6 +330,7 @@
 <script src="/js/main.js"></script>
 
 <script>
+/* Blok Javascript Toast, Bookmark, Rating, Comment, & Report tetap dipertahankan seperti semula */
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
