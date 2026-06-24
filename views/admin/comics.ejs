@@ -59,7 +59,14 @@
                         <% comics.forEach(c => { %>
                         <tr style="border-bottom: 1px solid rgba(63, 63, 70, 0.2);">
                             <td style="padding:10px; width:80px">
-                                <img src="/<%= c.coverImage %>" alt="Cover" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid #444">
+                                <% 
+                                  // PERUBAHAN: Menghilangkan tabrakan garing miring ganda (//) di URL gambar
+                                  let cleanSrc = c.coverImage;
+                                  if (cleanSrc && !cleanSrc.startsWith('/') && !cleanSrc.startsWith('http')) {
+                                      cleanSrc = '/' + cleanSrc;
+                                  }
+                                %>
+                                <img src="<%= cleanSrc || '/img/no-cover.jpg' %>" alt="Cover" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid #444">
                             </td>
                             <td style="font-weight:bold; color: #f5f5f5;"><%= c.title %></td>
                             <td style="color: #2299DD;">
