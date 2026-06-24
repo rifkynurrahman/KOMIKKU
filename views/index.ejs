@@ -68,7 +68,17 @@
   <div class="hero-right">
     <% safeTrending.slice(0,5).forEach((k, i) => { %>
     <a href="/komik/<%= k._id %>" class="hero-cover-slot" <%= i === 0 ? 'style=grid-row:span\u00202;' : '' %>>
-      <img src="<%= k.coverImage || k.image %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.src='/img/no-cover.jpg'">
+      <% 
+        let heroCover = '/img/no-cover.jpg';
+        if (k.image && typeof k.image === 'object') {
+          heroCover = k.image.jpg?.large_image_url || k.image.jpg?.image_url || heroCover;
+        } else if (k.coverImage) {
+          heroCover = k.coverImage;
+        } else if (typeof k.image === 'string') {
+          heroCover = k.image;
+        }
+      %>
+      <img src="<%= heroCover %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.src='/img/no-cover.jpg'">
     </a>
     <% }) %>
   </div>
@@ -84,21 +94,40 @@
     <% safeTrending.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="<%= k.coverImage || k.image %>" alt="<%= k.title %>" onerror="this.src='/img/no-cover.jpg'">
+        <% 
+          let trendCover = '/img/no-cover.jpg';
+          if (k.image && typeof k.image === 'object') {
+            trendCover = k.image.jpg?.large_image_url || k.image.jpg?.image_url || trendCover;
+          } else if (k.coverImage) {
+            trendCover = k.coverImage;
+          } else if (typeof k.image === 'string') {
+            trendCover = k.image;
+          }
+        %>
+        <img src="<%= trendCover %>" alt="<%= k.title %>" onerror="this.src='/img/no-cover.jpg'">
         <% if(k.badge) { %><span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span><% } %>
       </div>
       <div class="info">
-        <div class="genre-tag" style="color: #2299DD;"><%= k.genres && k.genres.length > 0 ? k.genres[0] : 'Umum' %></div>
+        <div class="genre-tag" style="color: #2299DD;">
+          <%= k.genres && k.genres.length > 0 ? (typeof k.genres[0] === 'object' ? k.genres[0].name : k.genres[0]) : 'Umum' %>
+        </div>
         <div class="comic-title"><%= k.title %></div>
         
         <div class="comic-ch">
-          Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
+          Ch.<% 
+            if (k.chapters && k.chapters.length > 0) {
+              const lastCh = k.chapters[k.chapters.length - 1];
+              %><%= lastCh.chapterNumber || lastCh.number || '1' %><%
+            } else {
+              %>1<%
+            }
+          %> 
           · <%= k.status || 'Ongoing' %>
         </div>
         
         <div class="meta-row">
           <span>👁 <%= safeFormatViews(k.views) %></span>
-          <span>⭐ <%= k.rating %></span>
+          <span>⭐ <%= k.rating || '0.0' %></span>
         </div>
       </div>
     </a>
@@ -116,7 +145,17 @@
     <% safeTerbaru.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="<%= k.coverImage || k.image %>" alt="<%= k.title %>" onerror="this.src='/img/no-cover.jpg'">
+        <% 
+          let newCover = '/img/no-cover.jpg';
+          if (k.image && typeof k.image === 'object') {
+            newCover = k.image.jpg?.large_image_url || k.image.jpg?.image_url || newCover;
+          } else if (k.coverImage) {
+            newCover = k.coverImage;
+          } else if (typeof k.image === 'string') {
+            newCover = k.image;
+          }
+        %>
+        <img src="<%= newCover %>" alt="<%= k.title %>" onerror="this.src='/img/no-cover.jpg'">
         <% if(k.badge) { %>
           <span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span>
         <% } else if(k.isFromApi) { %>
@@ -126,17 +165,26 @@
         <% } %>
       </div>
       <div class="info">
-        <div class="genre-tag" style="color: #2299DD;"><%= k.genres && k.genres.length > 0 ? k.genres[0] : 'Umum' %></div>
+        <div class="genre-tag" style="color: #2299DD;">
+          <%= k.genres && k.genres.length > 0 ? (typeof k.genres[0] === 'object' ? k.genres[0].name : k.genres[0]) : 'Umum' %>
+        </div>
         <div class="comic-title"><%= k.title %></div>
         
         <div class="comic-ch">
-          Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
+          Ch.<% 
+            if (k.chapters && k.chapters.length > 0) {
+              const lastCh = k.chapters[k.chapters.length - 1];
+              %><%= lastCh.chapterNumber || lastCh.number || '1' %><%
+            } else {
+              %>1<%
+            }
+          %> 
           · <%= k.status || 'Ongoing' %>
         </div>
         
         <div class="meta-row">
           <span>👁 <%= safeFormatViews(k.views) %></span>
-          <span>⭐ <%= k.rating %></span>
+          <span>⭐ <%= k.rating || '0.0' %></span>
         </div>
       </div>
     </a>
