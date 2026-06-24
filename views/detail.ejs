@@ -132,7 +132,7 @@
 
 <div class="detail-hero">
   <div class="detail-hero-inner">
-    <div class="detail-cover"><img src="<%= comic.coverImage %>" alt="<%= comic.title %>"></div>
+    <div class="detail-cover"><img src="<%= typeof comic.image === 'object' ? (comic.image.jpg?.large_image_url || comic.image.jpg?.image_url) : comic.image %>" alt="<%= comic.title %>" class="img-fluid" onerror="this.src='/img/no-cover.jpg'">" alt="<%= comic.title %>"></div>
     <div class="detail-meta">
       <% if(comic.badge) { %><span class="card-badge badge-<%= comic.badge.toLowerCase() %>" style="margin-bottom:10px;display:inline-block"><%= comic.badge %></span><% } %>
       <div class="detail-title"><%= comic.title %></div>
@@ -249,7 +249,7 @@
           <% if(locals.similar && similar.length > 0) { %>
             <% similar.forEach(s => { %>
             <a href="/komik/<%= s._id %>" class="similar-item">
-              <div class="similar-cover"><img src="<%= s.coverImage %>" alt="<%= s.title %>"></div>
+              <div class="similar-cover"><img src="<%= typeof s.coverImage === 'object' ? (s.coverImage.jpg?.large_image_url || s.coverImage.jpg?.image_url) : s.coverImage %>" alt="<%= s.title %>" onerror="this.src='/img/no-cover.jpg'"></div>
               <div class="similar-info">
                 <div class="s-title"><%= s.title %></div>
                 <div class="s-ch">
