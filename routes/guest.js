@@ -2,8 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose'); // 🟢 BARU: Diperlukan untuk validasi & casting ObjectId
+const axios = require('axios'); // 🟢 BARU: Diperlukan untuk fetch data dari API luar
 const Comic = require('../models/Comic');
 const User = require('../models/User');
+const Report = require('../models/Report');
 const { GENRES } = require('../data/dummyData'); 
 
 // Fungsi pembantu untuk mengubah angka mentah menjadi format ringkas (1.2JT)
@@ -81,6 +83,40 @@ router.get('/browse', async (req, res) => {
   } catch (err) {
     console.error('Error di Browse:', err);
     res.status(500).send('Terjadi kesalahan pada server.');
+  }
+});
+
+// 🟢 BARU: GET /komik-luar — Integrasi API Komik Eksternal secara Dinamis
+router.get('/komik-luar', async (req, res) => {
+  try {
+    // Mengambil keyword dari parameter query (?search=...) atau default ke 'Naruto' jika kosong
+    const keyword = req.query.search || 'Naruto';
+    const apiBaseUrl = process.env.MANGA_API_URL;
+
+    if (!apiBaseUrl) {
+      console.error("MANGA_API_URL belum dikonfigurasi di file .env");
+      return res.status(500).send("Konfigurasi API tidak ditemukan.");
+    }
+    
+    // Melakukan fetch data ke API eksternal
+    const response = await axios.get(`${apiBaseUrl}/${keyword}`);
+    
+    // Sesuaikan struktur data (array results) dari API Consumet / MangaDex
+    const daftarKomik = response.data.results || [];
+
+    res.render('browse-api', {
+      title: `Pencarian API: ${keyword}`,
+      comics: daftarKomik,
+      user: req.session.user || null
+    });
+  } catch (error) {
+    console.error("Error Fetching Manga API:", error.message);
+    // Fallback jika API limit / error agar halaman tidak crash
+    res.render('browse-api', {
+      title: `Pencarian API Gagal`,
+      comics: [],
+      user: req.session.user || null
+    });
   }
 });
 
@@ -222,7 +258,7 @@ router.post('/komik/:id/komentar', async (req, res) => {
   }
 });
 
-// 2. RUTE RATING (🛠️ DIUBAH TOTAL: SEKARANG MENGHITUNG RATA-RATA DENGAN AKURAT)
+// 2. RUTE RATING
 router.post('/komik/:id/rate', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
@@ -238,25 +274,19 @@ router.post('/komik/:id/rate', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Komik tidak ditemukan!' });
     }
 
-    // Pastikan array penampung sub-document ratings tersedia
     if (!comic.ratings) comic.ratings = [];
 
-    // Cek apakah user bersangkutan sudah pernah memberikan rating di komik ini
     const existingRatingIndex = comic.ratings.findIndex(r => r.userId && r.userId.toString() === userId.toString());
 
     if (existingRatingIndex > -1) {
-      // Jika sudah ada, timpa skor lamanya dengan skor inputan baru
       comic.ratings[existingRatingIndex].score = parseFloat(score);
     } else {
-      // Jika belum ada riwayat, push data penilai baru ke dalam array
       comic.ratings.push({ userId: userId, score: parseFloat(score) });
     }
 
-    // Hitung akumulasi nilai rata-rata (Total Skor / Jumlah Pemberi Rating)
     const totalScore = comic.ratings.reduce((sum, item) => sum + item.score, 0);
     const averageRating = totalScore / comic.ratings.length;
 
-    // Masukkan ke field string utama dalam format satu angka desimal (Contoh: "4.5")
     comic.rating = averageRating.toFixed(1);
     await comic.save();
 
@@ -271,7 +301,7 @@ router.post('/komik/:id/rate', async (req, res) => {
   }
 });
 
-// 3. RUTE BOOKMARK (DIUBAH MENJADI POST & MENGGUNAKAN API RESPONSE)
+// 3. RUTE BOOKMARK
 router.post('/komik/:id/bookmark', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
@@ -302,74 +332,70 @@ router.post('/komik/:id/bookmark', async (req, res) => {
   }
 });
 
-// DETAIL KREATOR / PUBLIC VIEW (🛠️ DIUBAH LOGIKA QUERY NYA AGAR TERDITEKSI MENGGUNAKAN OBJECTID)
+// DETAIL KREATOR / PUBLIC VIEW
 router.get('/creator/:id', async (req, res) => {
-    try {
-        const creatorId = req.params.id;
-        
-        const creator = await User.findById(creatorId);
-        if (!creator) return res.status(404).send('Kreator tidak ditemukan');
+  try {
+    const creatorId = req.params.id;
+    
+    const creator = await User.findById(creatorId);
+    if (!creator) return res.status(404).send('Kreator tidak ditemukan');
 
-        // Cast string parameter ID dari URL menjadi Mongoose ObjectId asli agar query pencocokan .find() akurat
-        let queryId;
-        if (mongoose.Types.ObjectId.isValid(creatorId)) {
-            queryId = new mongoose.Types.ObjectId(creatorId);
-        } else {
-            queryId = creatorId;
-        }
-
-        // Ambil data komik menggunakan queryId hasil konversi
-        const comics = await Comic.find({ uploadedBy: queryId });
-
-        let totalViews = 0;
-        let totalChapters = 0;
-        let topComicTitle = '-';
-        let topComicViews = 0;
-
-        comics.forEach(comic => {
-            const views = comic.views || 0;
-            totalViews += views;
-            totalChapters += (comic.chapters ? comic.chapters.length : 0);
-
-            if (views >= topComicViews) {
-                topComicViews = views;
-                topComicTitle = comic.title;
-            }
-        });
-
-        const averageViews = comics.length > 0 ? Math.round(totalViews / comics.length) : 0;
-
-        const totals = {
-            comics: comics.length,
-            chapters: totalChapters,
-            views: totalViews,
-            averageViews: averageViews,
-            topComicTitle: topComicTitle,
-            topComicViews: topComicViews
-        };
-
-        const localFormatViews = (num) => {
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'RB';
-            return num.toString();
-        };
-
-        res.render('author', {
-            creator: creator,
-            comics: comics,
-            totals: totals,          
-            formatViews: localFormatViews, 
-            isPublicView: true,       
-            user: req.session.user || null 
-        });
-
-    } catch (error) {
-        console.error("Error pada halaman creator public view:", error);
-        res.status(500).send("Server Error");
+    let queryId;
+    if (mongoose.Types.ObjectId.isValid(creatorId)) {
+        queryId = new mongoose.Types.ObjectId(creatorId);
+    } else {
+        queryId = creatorId;
     }
-});
 
-const Report = require('../models/Report');
+    const comics = await Comic.find({ uploadedBy: queryId });
+
+    let totalViews = 0;
+    let totalChapters = 0;
+    let topComicTitle = '-';
+    let topComicViews = 0;
+
+    comics.forEach(comic => {
+        const views = comic.views || 0;
+        totalViews += views;
+        totalChapters += (comic.chapters ? comic.chapters.length : 0);
+
+        if (views >= topComicViews) {
+            topComicViews = views;
+            topComicTitle = comic.title;
+        }
+    });
+
+    const averageViews = comics.length > 0 ? Math.round(totalViews / comics.length) : 0;
+
+    const totals = {
+        comics: comics.length,
+        chapters: totalChapters,
+        views: totalViews,
+        averageViews: averageViews,
+        topComicTitle: topComicTitle,
+        topComicViews: topComicViews
+    };
+
+    const localFormatViews = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'RB';
+        return num.toString();
+    };
+
+    res.render('author', {
+        creator: creator,
+        comics: comics,
+        totals: totals,          
+        formatViews: localFormatViews, 
+        isPublicView: true,       
+        user: req.session.user || null 
+    });
+
+  } catch (error) {
+    console.error("Error pada halaman creator public view:", error);
+    res.status(500).send("Server Error");
+  }
+});
 
 // Endpoint User melapor komik
 router.post('/komik/:id/report', async (req, res) => {
