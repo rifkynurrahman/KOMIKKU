@@ -68,7 +68,7 @@
   <div class="hero-right">
     <% safeTrending.slice(0,5).forEach((k, i) => { %>
     <a href="/komik/<%= k._id %>" class="hero-cover-slot" <%= i === 0 ? 'style=grid-row:span\u00202;' : '' %>>
-      <img src="<%= k.coverImage %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+      <img src="<%= k.coverImage || k.image %>" alt="<%= k.title %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.src='/img/no-cover.jpg'">
     </a>
     <% }) %>
   </div>
@@ -84,7 +84,7 @@
     <% safeTrending.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="<%= k.coverImage %>" alt="<%= k.title %>">
+        <img src="<%= k.coverImage || k.image %>" alt="<%= k.title %>" onerror="this.src='/img/no-cover.jpg'">
         <% if(k.badge) { %><span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span><% } %>
       </div>
       <div class="info">
@@ -93,7 +93,7 @@
         
         <div class="comic-ch">
           Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
-          · <%= k.status %>
+          · <%= k.status || 'Ongoing' %>
         </div>
         
         <div class="meta-row">
@@ -110,16 +110,18 @@
   <div class="section-head">
     <div class="section-badge">🆕 Rilis Baru</div>
     <h2 class="section-title">Komik Terbaru</h2>
-    <p class="section-sub">Karya segar langsung dari para kreator lokal</p>
+    <p class="section-sub">Karya segar langsung dari para kreator lokal &amp; luar</p>
   </div>
   <div class="comics-grid">
     <% safeTerbaru.forEach(k => { %>
     <a href="/komik/<%= k._id %>" class="comic-card">
       <div class="comic-cover">
-        <img src="<%= k.coverImage %>" alt="<%= k.title %>">
+        <img src="<%= k.coverImage || k.image %>" alt="<%= k.title %>" onerror="this.src='/img/no-cover.jpg'">
         <% if(k.badge) { %>
           <span class="card-badge badge-<%= k.badge.toLowerCase() %>"><%= k.badge %></span>
-        <% } else if(k.status === 'Ongoing') { %>
+        <% } else if(k.isFromApi) { %>
+          <span class="card-badge" style="background: #E15B5B;">API LUAR</span>
+        <% } else if(k.status === 'Ongoing' || !k.status) { %>
           <span class="card-badge" style="background: #2299DD;">NEW</span>
         <% } %>
       </div>
@@ -129,7 +131,7 @@
         
         <div class="comic-ch">
           Ch.<%= k.chapters && k.chapters.length > 0 ? k.chapters[k.chapters.length - 1].chapterNumber : '1' %> 
-          · <%= k.status %>
+          · <%= k.status || 'Ongoing' %>
         </div>
         
         <div class="meta-row">
