@@ -12,10 +12,10 @@
 
     <div style="padding: 40px; max-width: 1200px; margin: 0 auto; color: #fff;">
         <h1 style="margin-bottom: 10px; color: #ffcc00;"><%= title %></h1>
-        <p style="color: #aaa; margin-bottom: 30px;">Data di bawah ini diambil langsung via API secara real-time.</p>
+        <p style="color: #aaa; margin-bottom: 30px;">Data di bawah ini diambil langsung via Jikan API (MyAnimeList) secara real-time.</p>
 
         <form action="/komik-luar" method="GET" style="margin-bottom: 30px; display: flex; gap: 10px;">
-            <input type="text" name="search" placeholder="Cari komik (misal: Naruto, One Piece)..." style="padding: 10px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; flex: 1;">
+            <input type="text" name="search" placeholder="Cari komik (misal: Naruto, One Piece, Bleach)..." style="padding: 10px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; flex: 1;">
             <button type="submit" style="padding: 10px 20px; border-radius: 6px; border: none; background: #2299DD; color: #fff; font-weight: bold; cursor: pointer;">Cari</button>
         </form>
 
@@ -23,21 +23,32 @@
             <% if (comics && comics.length > 0) { %>
                 <% comics.forEach(comic => { %>
                     <div style="background: #1a1a1e; border: 1px solid #333; border-radius: 8px; overflow: hidden; padding: 10px; display: flex; flex-direction: column; justify-content: space-between;">
-                        <img src="<%= comic.image || comic.cover || '/img/no-cover.jpg' %>" alt="Cover" style="width: 100%; height: 240px; object-fit: cover; border-radius: 4px;">
+                        
+                        <% 
+                          // 🛠️ MODIFIKASI: Ambil path gambar sesuai struktur object Jikan API
+                          let coverImg = '/img/no-cover.jpg';
+                          if (comic.images && comic.images.jpg && comic.images.jpg.image_url) {
+                              coverImg = comic.images.jpg.image_url;
+                          }
+                        %>
+                        <img src="<%= coverImg %>" alt="Cover" style="width: 100%; height: 240px; object-fit: cover; border-radius: 4px;">
+                        
                         <div style="margin-top: 10px;">
-                            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: #f5f5f5; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: #f5f5f5; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="<%= comic.title %>">
                                 <%= comic.title %>
                             </h3>
+                            
                             <span style="font-size: 12px; color: #2299DD; display: block; margin-bottom: 10px;">
-                                ID: <%= comic.id %>
+                                MAL ID: <%= comic.mal_id %>
                             </span>
-                            <a href="#" style="display: block; text-align: center; background: #333; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 13px; font-weight: bold;">Baca</a>
+                            
+                            <a href="https://myanimelist.net/manga/<%= comic.mal_id %>" target="_blank" style="display: block; text-align: center; background: #2299DD; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 13px; font-weight: bold;">Lihat MAL</a>
                         </div>
                     </div>
                 <% }) %>
             <% } else { %>
                 <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-                    Komik tidak ditemukan atau API sedang limit.
+                    Komik tidak ditemukan atau API sedang limit. Coba ketik pencarian lain!
                 </div>
             <% } %>
         </div>

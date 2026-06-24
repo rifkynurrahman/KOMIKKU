@@ -86,10 +86,9 @@ router.get('/browse', async (req, res) => {
   }
 });
 
-// 🟢 BARU: GET /komik-luar — Integrasi API Komik Eksternal secara Dinamis
+// 🟢 UPDATE: GET /komik-luar — Khusus Integrasi Jikan API (MyAnimeList)
 router.get('/komik-luar', async (req, res) => {
   try {
-    // Mengambil keyword dari parameter query (?search=...) atau default ke 'Naruto' jika kosong
     const keyword = req.query.search || 'Naruto';
     const apiBaseUrl = process.env.MANGA_API_URL;
 
@@ -98,20 +97,19 @@ router.get('/komik-luar', async (req, res) => {
       return res.status(500).send("Konfigurasi API tidak ditemukan.");
     }
     
-    // Melakukan fetch data ke API eksternal
-    const response = await axios.get(`${apiBaseUrl}/${keyword}`);
+    // Tembak Jikan API secara langsung
+    const response = await axios.get(`${apiBaseUrl}${keyword}`);
     
-    // Sesuaikan struktur data (array results) dari API Consumet / MangaDex
-    const daftarKomik = response.data.results || [];
+    // 🛠️ STRUKTUR JIKAN: Mengambil data dari response.data.data
+    const daftarKomik = response.data.data || [];
 
     res.render('browse-api', {
-      title: `Pencarian API: ${keyword}`,
+      title: `Pencarian API (Jikan): ${keyword}`,
       comics: daftarKomik,
       user: req.session.user || null
     });
   } catch (error) {
-    console.error("Error Fetching Manga API:", error.message);
-    // Fallback jika API limit / error agar halaman tidak crash
+    console.error("Error Fetching Jikan API:", error.message);
     res.render('browse-api', {
       title: `Pencarian API Gagal`,
       comics: [],
