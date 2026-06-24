@@ -66,8 +66,8 @@ router.get('/browse', async (req, res) => {
     const { genre, q } = req.query;
     let query = {};
 
-    if (genre) query.genres = genre; 
-    if (q) query.title = { $regex: q, $options: 'i' };
+  if (genre) query.genres = genre; 
+  if (q) query.title = { $regex: q, $options: 'i' };
 
     const filteredComics = await Comic.find(query).sort({ createdAt: -1 });
 
@@ -118,7 +118,44 @@ router.get('/komik-luar', async (req, res) => {
   }
 });
 
-// GET /komik/:id — Detail komik (FIXED WARNING DEPRECATION & POPULATE)
+// 🟢 BARU: GET /komik-luar/:id — Detail Komik dari API Luar agar tetap berada di website sendiri
+router.get('/komik-luar/:id', async (req, res) => {
+  try {
+    const malId = req.params.id;
+    // Menggunakan Jikan endpoint detail manga: https://api.jikan.moe/v4/manga/{id}/full
+    const response = await axios.get(`https://api.jikan.moe/v4/manga/${malId}/full`);
+    const comicData = response.data.data;
+
+    if (!comicData) return res.status(404).send('Komik API luar tidak ditemukan');
+
+    // Transformasi struktur data Jikan agar serasi dengan template view detail lokal kamu
+    const comic = {
+      _id: comicData.mal_id,
+      title: comicData.title,
+      synopsis: comicData.synopsis || 'Tidak ada sinopsis.',
+      image: comicData.images?.jpg?.large_image_url || comicData.images?.jpg?.image_url || '/img/no-cover.jpg',
+      rating: comicData.score || '0.0',
+      views: comicData.scored_by || 0,
+      genres: comicData.genres ? comicData.genres.map(g => g.name) : [],
+      chapters: [], // API publik seperti Jikan umumnya tidak menyediakan isi page chapter gratis karena hak cipta
+      isFromApi: true, // Flag penanda di template ejs jika dibutuhkan
+      authors: comicData.authors ? comicData.authors.map(a => a.name).join(', ') : 'Unknown'
+    };
+
+    res.render('detail', { 
+      currentPath: '', 
+      comic, 
+      similar: [], // Kosongkan komik sejenis untuk menghemat rate-limit API
+      formatViews,
+      user: req.session.user 
+    });
+  } catch (err) {
+    console.error('Error di Detail Komik Luar:', err.message);
+    res.status(500).send('Gagal mengambil detail data dari server MyAnimeList.');
+  }
+});
+
+// GET /komik/:id — Detail komik Lokal (FIXED WARNING DEPRECATION & POPULATE)
 router.get('/komik/:id', async (req, res) => {
   try {
     const comicData = await Comic.findByIdAndUpdate(
