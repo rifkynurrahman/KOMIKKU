@@ -39,11 +39,10 @@ app.use(session({
   cookie: { 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    // 🔥 UBAH BARIS INI JADI false AGAR SESTION DI VERCEL AMAN & STABIL
+    // 🔥 UBAH BARIS INI JADI false AGAR SESSION DI VERCEL AMAN & STABIL
     secure: false 
   }
 }));
-
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -71,11 +70,44 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// ... (Routes tetap sama)
+// ==========================================
+// 3. ROUTES UTAMA
+// ==========================================
 app.use('/', require('./routes/guest'));
 app.use('/auth', require('./routes/auth'));
 app.use('/upload', require('./routes/upload'));
 app.use('/author', require('./routes/author'));
 app.use('/admin', require('./routes/admin')); 
+
+// ==========================================
+// 🔥 RUTE TEMPORARY: BYPASS PEMBUATAN ADMIN VIA CLOUD VERCEL
+// ==========================================
+app.get('/bikin-admin-rahasia-123', async (req, res) => {
+  try {
+    const bcrypt = require('bcrypt');
+    const User = require('./models/User'); // Memanggil model user kamu
+
+    // Hapus akun lama dengan email ini agar tidak duplikat
+    await User.deleteOne({ email: 'admin@komikku.com' });
+
+    // Enkripsi Password
+    const hashedPassword = await bcrypt.hash('admin12345', 10);
+
+    // Buat data instansiasi model baru
+    const adminBaru = new User({
+      firstName: 'Admin',
+      lastName: 'Utama',
+      username: 'admin_komikku',
+      email: 'admin@komikku.com',
+      password: hashedPassword,
+      role: 'admin'
+    });
+
+    await adminBaru.save();
+    res.send('<h1 style="color: green; text-align: center; margin-top: 50px;">✅ AKUN ADMIN BERHASIL DIBUAT DI CLOUD VIA VERCEL!</h1><p style="text-align: center;">Silakan kembali ke halaman login asli untuk masuk.</p>');
+  } catch (error) {
+    res.status(500).send('❌ Gagal membuat akun admin: ' + error.message);
+  }
+});
 
 module.exports = app;

@@ -3,18 +3,21 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const User = require('./models/User'); 
 
-// Koneksi ke Database
-mongoose.connect('mongodb://127.0.0.1:27017/komikku')
-    .then(async () => {
-        console.log('Terhubung ke MongoDB untuk pembuatan admin...');
+// 1. WAJIB DIALOKASIKAN DI PALING ATAS AGAR FILE .ENV LANGSUNG TERBACA
+require('dotenv').config();
 
-        // 1. Hapus akun lama dengan email yang sama (opsional, agar tidak duplikat)
+// 2. Hubungkan ke Database Menggunakan Alamat di File .env
+mongoose.connect(process.env.MONGODB_URI)
+    .then(async () => {
+        console.log('⚡ Sukses Terhubung ke MongoDB Atlas Cloud!');
+
+        // Hapus akun lama dengan email yang sama (opsional, agar tidak duplikat)
         await User.deleteOne({ email: 'admin@komikku.com' });
 
-        // 2. Enkripsi Password
+        // Enkripsi Password
         const hashedPassword = await bcrypt.hash('admin12345', 10);
 
-        // 3. Simpan Akun Admin Baru
+        // Simpan Akun Admin Baru
         const adminBaru = new User({
             firstName: 'Admin',
             lastName: 'Utama',
@@ -27,15 +30,15 @@ mongoose.connect('mongodb://127.0.0.1:27017/komikku')
         await adminBaru.save();
 
         console.log('=========================================');
-        console.log('✅ AKUN ADMIN BERHASIL DIBUAT! 100%');
+        console.log('✅ AKUN ADMIN BERHASIL DIBUAT DI CLOUD! 100%');
         console.log('Email   : admin@komikku.com');
         console.log('Password: admin12345');
         console.log('=========================================');
-        console.log('Silakan jalankan aplikasi dan LOGIN dengan akun ini.');
+        console.log('Silakan kembali ke web Vercel dan langsung LOGIN.');
         
         process.exit();
     })
     .catch(err => {
-        console.error('❌ eror membuat admin:', err);
+        console.error('❌ Eror membuat admin:', err);
         process.exit();
     });
