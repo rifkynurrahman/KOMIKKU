@@ -49,7 +49,7 @@ router.post('/reports/resolve/:id', async (req, res) => {
 router.get('/settings', async (req, res) => {
   try {
     let settings = await Setting.findOne();
-    if (!settings) settings = await Setting.create({}); // Buat default jika kosong
+    if (!settings) settings = await Setting.create({}); 
     res.render('admin/settings', { settings, user: req.session.user });
   } catch (err) { 
     res.status(500).send("Error Pengaturan: " + err.message); 
