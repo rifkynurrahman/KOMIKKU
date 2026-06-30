@@ -1,6 +1,8 @@
 # 🗲 KomikKu — Web Platform Komik Indonesia
-Nama : Muhammad Rifky Nur rahman
-Nim : 202451012
+1. Khilmi Bahrulrozaq (202451011) 
+2. Muhammad Rifky Nur Rahman (202451012) 
+3. Hernanda Yudha Habibullah (202451016) 
+4. Anif Fauzhun Ni'am (202451020)
 > Platform baca dan upload komik berbasis web yang mendukung sistem role (Guest, Kreator, Admin).
 
 ---
