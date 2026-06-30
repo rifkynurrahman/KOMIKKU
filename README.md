@@ -1,5 +1,6 @@
 # 🗲 KomikKu — Web Platform Komik Indonesia
-
+Nama : Muhammad Rifky Nur rahman
+Nim : 202451012
 > Platform baca dan upload komik berbasis web yang mendukung sistem role (Guest, Kreator, Admin).
 
 ---
