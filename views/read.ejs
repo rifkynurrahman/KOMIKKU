@@ -73,13 +73,11 @@ select.reader-btn{appearance:none;padding-right:28px;background-image:url("data:
 </div>
 
 <div class="pages-wrap">
-  <pre style="color: lime; background: #222; padding: 10px; width: 100%; overflow: auto;"><%= JSON.stringify(chapter.pages, null, 2) %></pre>
-
   <% if (chapter && chapter.pages && chapter.pages.length > 0) { %>
     <% chapter.pages.forEach((page, i) => { %>
       <img
         class="page-img"
-        src="<%= typeof page === 'object' ? (page.url || page.secure_url || page.path || page.image || page.link) : page %>"
+        src="<%= typeof page === 'object' ? page.pageImage : page %>"
         alt="<%= comic.title %> Ch.<%= chapter.number %> Page <%= i+1 %>"
         loading="<%= i < 3 ? 'eager' : 'lazy' %>"
       >
