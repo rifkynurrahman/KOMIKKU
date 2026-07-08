@@ -77,7 +77,7 @@ select.reader-btn{appearance:none;padding-right:28px;background-image:url("data:
     <% chapter.pages.forEach((page, i) => { %>
       <img
         class="page-img"
-        src="<%= page %>"
+        src="<%= typeof page === 'object' ? (page.url || page.secure_url || page.path) : page %>"
         alt="<%= comic.title %> Ch.<%= chapter.number %> Page <%= i+1 %>"
         loading="<%= i < 3 ? 'eager' : 'lazy' %>"
       >
