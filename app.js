@@ -85,7 +85,7 @@ app.use('/admin', require('./routes/admin'));
 app.get('/bikin-admin-rahasia-123', async (req, res) => {
   try {
     const bcrypt = require('bcrypt');
-    const User = require('./models/User'); // Memanggil model user kamu
+    const User = require('./models/User'); //mengambil model
 
     // Hapus akun lama dengan email ini agar tidak duplikat
     await User.deleteOne({ email: 'admin@komikku.com' });
