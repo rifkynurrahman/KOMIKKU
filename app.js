@@ -88,7 +88,7 @@ app.get('/bikin-admin-rahasia-123', async (req, res) => {
     const User = require('./models/User'); //mengambil model
 
     // Hapus akun lama dengan email ini agar tidak duplikat
-    await User.deleteOne({ email: 'rifky1235@komikku.com' });
+    await User.deleteOne({ email: 'admin@komikku.com' });
 
     // Enkripsi Password
     const hashedPassword = await bcrypt.hash('admin12345', 10);
